@@ -1,41 +1,48 @@
 import type { Skill } from "../skills";
 
 export const reactComponentSkill: Skill = {
-  name: "react-component",
+  name: "lit-component",
   description:
-    "Create well-structured React components with TypeScript. Use when asked to build UI components, pages, or React features.",
-  content: `# React Component Creation
+    "Create well-structured Lit web components with TypeScript. Use when asked to build UI components, pages, or web component features.",
+  content: `# Lit Web Component Creation
 
 ## Guidelines
 
-When creating React components:
+When creating Lit web components:
 
 ### Structure
 - One component per file
-- Use functional components with hooks
-- Export the component as a named export
-- Co-locate CSS in a \`.css\` file with the same name
-- Use TypeScript interfaces for props
+- Use the \`@customElement\` decorator
+- Extend \`LitElement\`
+- Use \`static styles = css\\\`...\\\`\` for scoped styles
+- Use TypeScript decorators for properties and state
 
-### Props
+### Properties & State
 \`\`\`typescript
-interface Props {
-  /** Document all props with JSDoc */
-  title: string;
-  /** Optional props should have defaults */
-  variant?: "primary" | "secondary";
-  /** Event handlers follow onXxx naming */
-  onClick?: () => void;
-  /** Children when the component wraps content */
-  children?: React.ReactNode;
+import { LitElement, html, css } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+
+@customElement("my-component")
+export class MyComponent extends LitElement {
+  /** Public reactive properties (set via attributes/properties) */
+  @property() title = "";
+  @property({ type: Boolean }) disabled = false;
+
+  /** Internal reactive state */
+  @state() private count = 0;
 }
 \`\`\`
 
-### State Management
-- Keep state as local as possible
-- Lift state up only when shared between siblings
-- Use \`useCallback\` for event handlers passed to children
-- Use \`useMemo\` only for expensive computations
+### Events
+- Dispatch CustomEvents for parent communication
+- Use \`bubbles: true, composed: true\` to cross shadow DOM boundaries
+\`\`\`typescript
+this.dispatchEvent(new CustomEvent("my-event", {
+  detail: { value: 42 },
+  bubbles: true,
+  composed: true,
+}));
+\`\`\`
 
 ### Accessibility
 - Use semantic HTML elements
@@ -47,13 +54,10 @@ interface Props {
 - Loading states: show skeleton or spinner
 - Error states: show error message with retry option
 - Empty states: show helpful message or call to action
+- Use \`nothing\` from lit for conditional rendering
+- Use \`repeat\` directive for keyed lists
 
 ## File Template
 
-\`\`\`
-/components/MyComponent.tsx   — Component + types
-/components/MyComponent.css   — Styles
-\`\`\`
-
-Write both files using the write tool.`,
+Write each component as a single .ts file with styles co-located using \`static styles\`.`,
 };

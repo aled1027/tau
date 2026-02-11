@@ -23,10 +23,10 @@ export const builtinTemplates: PromptTemplate[] = [
   },
   {
     name: "component",
-    description: "Create a React component",
-    body: `Create a React component named $1. Requirements: $\{@:2\}
+    description: "Create a Lit web component",
+    body: `Create a Lit web component named $1. Requirements: $\{@:2\}
 
-Use TypeScript with proper prop types. Create both the .tsx and .css files.`,
+Use TypeScript with decorators. Put styles in static styles using css tagged template.`,
   },
   {
     name: "fix",
