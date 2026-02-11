@@ -5,8 +5,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "index.html"),
-        tutor: resolve(__dirname, "tutor.html"),
+        chat: resolve(__dirname, "examples/chat/index.html"),
+        tutor: resolve(__dirname, "examples/tutor/index.html"),
       },
     },
   },

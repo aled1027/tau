@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { customElement, property, state, query } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
-import type { Agent, PromptTemplate, UserInputRequest, UserInputResponse, ToolCall } from "../../lib/index.js";
+import type { Agent, PromptTemplate, UserInputRequest, UserInputResponse, ToolCall } from "../../../../src/lib/index.js";
 import "./user-input-form.js";
 
 interface ChatMessage {
@@ -429,7 +429,7 @@ export class ChatView extends LitElement {
         <span class="title">π browser</span>
         <span>
           <span class="model">anthropic/claude-sonnet-4</span>
-          <a href="/tutor.html" style="color: var(--accent); font-size: 12px; margin-left: 12px; text-decoration: none; opacity: 0.7;">→ tutor</a>
+          <a href="/examples/tutor/index.html" style="color: var(--accent); font-size: 12px; margin-left: 12px; text-decoration: none; opacity: 0.7;">→ tutor</a>
         </span>
       </div>
 
