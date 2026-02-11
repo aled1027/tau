@@ -303,10 +303,10 @@ export class TutorView extends LitElement {
   // --- Lesson picker ---
 
   private async handleLessonPick(e: CustomEvent<string>) {
-    const lessonName = e.detail;
-    this.currentLesson = lessonName;
+    const topic = e.detail;
+    this.currentLesson = topic;
     this.lessonStarted = true;
-    await this.sendMessage(`Load the "${lessonName}" skill and start the first lesson. Explain the first concept briefly, then write an exercise to /exercise.js.`);
+    await this.sendMessage(`I want to learn about: ${topic}\n\nDesign a lesson plan for this topic, explain the first concept briefly, then write an exercise to /exercise.js.`);
   }
 
   // --- Send message to agent ---
