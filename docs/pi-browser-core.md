@@ -33,35 +33,26 @@ import { Agent } from "pi-browser";
 
 const agent = await Agent.create({ apiKey: "sk-or-..." });
 
-const result = await agent.send("Write a hello world in Python");
+const result = await agent.prompt("Write a hello world in Python");
 console.log(result.text);       // assistant's response
 console.log(result.toolCalls);  // any tool calls made
 ```
 
 ### With streaming updates
 
-```typescript
-const result = await agent.send("Write a hello world in Python", {
-  onText: (delta, fullText) => updateUI(fullText),
-  onToolCallStart: (tc) => showSpinner(tc.name),
-  onToolCallEnd: (tc) => showResult(tc.result),
-  onError: (err) => showError(err),
-});
-```
-
-### Low-level streaming (advanced)
-
-For full control over every event, use `prompt()` which returns an `AsyncGenerator<AgentEvent>`:
+`prompt()` returns a `PromptStream` — async-iterable for streaming, directly awaitable for the simple case:
 
 ```typescript
-for await (const event of agent.prompt("Write hello world")) {
+const stream = agent.prompt("Write a hello world in Python");
+for await (const event of stream) {
   switch (event.type) {
-    case "text_delta":      process.stdout.write(event.delta); break;
-    case "tool_call_start": console.log(`Calling ${event.toolCall.name}...`); break;
-    case "tool_call_end":   console.log(`Result: ${event.toolCall.result?.content}`); break;
-    case "error":           console.error(event.error); break;
+    case "text_delta":      updateUI(event.delta); break;
+    case "tool_call_start": showSpinner(event.toolCall.name); break;
+    case "tool_call_end":   showResult(event.toolCall.result); break;
+    case "error":           showError(event.error); break;
   }
 }
+const result = stream.result;  // accumulated PromptResult
 ```
 
 Everything else — extensions, skills, templates, threads — is opt-in.
@@ -74,11 +65,11 @@ Exported from `pi-browser`:
 
 ```typescript
 // Classes
-Agent, VirtualFS
+Agent, PromptStream, VirtualFS
 
 // Types
 AgentConfig, Message, ToolCall, ToolResult, ToolDefinition,
-AgentEvent, PromptResult, PromptCallbacks, ThreadMeta,
+AgentEvent, PromptResult, ThreadMeta,
 Extension, ExtensionHost, PiBrowserAPI (deprecated),
 UserInputField, UserInputRequest, UserInputResponse,
 Skill, PromptTemplate
@@ -99,12 +90,8 @@ The `Agent` class is the primary API. It orchestrates messages, tools, extension
 ### Construction
 
 ```typescript
-// Recommended — creates agent, loads VFS, auto-loads extensions/skills, restores thread
+// Creates agent, loads VFS, auto-loads extensions/skills, restores thread
 const agent = await Agent.create(config);
-
-// Manual — you must call ready() yourself before prompting
-const agent = new Agent(config);
-await agent.ready();
 ```
 
 ### AgentConfig
@@ -122,60 +109,43 @@ interface AgentConfig {
 
 ### Sending messages
 
-#### `send(text, callbacks?): Promise<PromptResult>` — Recommended
+#### `prompt(text): PromptStream`
 
-The simplest way to interact with the agent. Sends a message, handles the full tool-use loop internally, and returns the final result. Optional callbacks provide streaming updates.
+The single method for interacting with the agent. Returns a `PromptStream` that is both **async-iterable** (for streaming) and **directly awaitable** (for the simple case).
 
 ```typescript
 interface PromptResult {
-  text: string;         // Full accumulated assistant text
+  text: string;           // Full accumulated assistant text
   toolCalls: ToolCall[];  // All tool calls made (with results)
-}
-
-interface PromptCallbacks {
-  onText?: (delta: string, fullText: string) => void;
-  onToolCallStart?: (toolCall: ToolCall) => void;
-  onToolCallEnd?: (toolCall: ToolCall) => void;
-  onError?: (error: string) => void;
 }
 ```
 
-**Example — no streaming:**
+**Simple — just await it:**
 
 ```typescript
-const result = await agent.send("What is 2 + 2?");
+const result = await agent.prompt("What is 2 + 2?");
 console.log(result.text); // "4"
 ```
 
-**Example — with streaming UI:**
+**Streaming — iterate for events, then read the result:**
 
 ```typescript
-const result = await agent.send("Create a React component", {
-  onText: (_delta, full) => { streamingText = full; },
-  onToolCallStart: (tc) => { console.log(`Calling ${tc.name}...`); },
-  onToolCallEnd: (tc) => { syncEditorFromFS(); },
-  onError: (err) => { showError(err); },
-});
-
-// After completion, use result.text and result.toolCalls
-displayMessage(result.text, result.toolCalls);
-```
-
-If the request is aborted via `agent.abort()`, `send()` resolves with whatever text/toolCalls were accumulated so far (does not throw).
-
-#### `prompt(text): AsyncGenerator<AgentEvent>` — Advanced
-
-Returns a raw event stream for full control. You must manually accumulate text deltas, track tool calls, and handle errors. Use `send()` unless you need event-level control.
-
-```typescript
-for await (const event of agent.prompt(text)) {
-  // handle each event
+const stream = agent.prompt("Create a React component");
+for await (const event of stream) {
+  switch (event.type) {
+    case "text_delta":      streamingText += event.delta; break;
+    case "tool_call_start": console.log(`Calling ${event.toolCall.name}...`); break;
+    case "tool_call_end":   syncEditorFromFS(); break;
+    case "error":           showError(event.error); break;
+  }
 }
+// After iteration, the accumulated result is available:
+displayMessage(stream.result.text, stream.result.toolCalls);
 ```
 
 #### `abort()`
 
-Cancel the current streaming response. With `send()`, the promise resolves with partial results. With `prompt()`, the generator throws an `AbortError`.
+Cancel the current streaming response. The stream ends early and `stream.result` contains whatever was accumulated so far.
 
 ### Messages
 
@@ -293,7 +263,7 @@ Threads provide conversation persistence across page reloads using IndexedDB and
 | `agent.switchThread(id): Promise<void>` | Switch to an existing thread |
 | `agent.deleteThread(id): Promise<void>` | Delete a thread |
 | `agent.renameThread(id, name): void` | Rename a thread |
-| `agent.persist(): Promise<void>` | Manually persist (auto-called after `send`/`prompt`) |
+| `agent.persist(): Promise<void>` | Manually persist (auto-called after `prompt`) |
 | `agent.serialize()` | Get `{ messages, fs }` snapshot |
 
 ```typescript
@@ -405,7 +375,7 @@ Pre-populate via `agent.fs` before prompting:
 
 ```typescript
 agent.fs.write("/data.json", JSON.stringify({ items: [1, 2, 3] }));
-const result = await agent.send("Summarize the data in /data.json");
+const result = await agent.prompt("Summarize the data in /data.json");
 ```
 
 ### VFS-persisted extensions and skills
@@ -637,7 +607,7 @@ agent.promptTemplates.expand("/scaffold ts myapp");
 // → "Create a new ts project called myapp. Set up the basic file structure. "
 ```
 
-Templates are auto-expanded by `send()` and `prompt()` — the model sees the final expanded text.
+Templates are auto-expanded by `prompt()` — the model sees the final expanded text.
 
 ### Built-in templates
 
@@ -661,7 +631,7 @@ Thread state is persisted automatically:
 - **Thread metadata** (id, name, timestamps) → `localStorage`
 - **Messages** → `IndexedDB`
 
-Messages are saved after each completed `send()` or `prompt()` turn. On page reload, `Agent.create()` restores the last active thread's messages and the shared VFS.
+Messages are saved after each completed `prompt()` turn. On page reload, `Agent.create()` restores the last active thread's messages and the shared VFS.
 
 ### Auto-loading on startup
 
@@ -674,7 +644,7 @@ When `Agent.create()` is called:
 ```typescript
 // Thread lifecycle
 const id = await agent.newThread("My project");
-await agent.send("Hello!");
+await agent.prompt("Hello!");
 
 // Later, switch between threads
 const threads = agent.listThreads();
@@ -728,7 +698,7 @@ const agent = await Agent.create({
 agent.fs.write("/greeting.txt", "Hello, world!");
 
 // Simple usage
-const result = await agent.send("Read /greeting.txt and tell me what it says");
+const result = await agent.prompt("Read /greeting.txt and tell me what it says");
 console.log(result.text);
 
 // Dynamic extension (persisted, auto-loaded next time)

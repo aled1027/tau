@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { createAgent } from "$lib/agent";
-  import type { Agent, PromptTemplate, ToolCall, ThreadMeta, UserInputRequest, UserInputResponse } from "pi-browser";
+  import type { Agent, PromptTemplate, ToolCall, ThreadMeta, UserInputRequest, UserInputResponse, AgentEvent } from "pi-browser";
 
   // --- State ---
 
@@ -170,19 +170,28 @@
     streamToolCalls = [];
 
     const localToolCalls: ToolCall[] = [];
-    const result = await agent.send(text, {
-      onText: (_delta, full) => { streamText = full; },
-      onToolCallStart: (tc) => {
-        localToolCalls.push(tc);
-        streamToolCalls = [...localToolCalls];
-      },
-      onToolCallEnd: (tc) => {
-        const idx = localToolCalls.findIndex((t) => t.id === tc.id);
-        if (idx >= 0) localToolCalls[idx] = tc;
-        streamToolCalls = [...localToolCalls];
-      },
-      onError: (err) => { streamText += `\n\n**Error:** ${err}`; },
-    });
+    const stream = agent.prompt(text);
+    for await (const event of stream) {
+      switch (event.type) {
+        case "text_delta":
+          streamText += event.delta;
+          break;
+        case "tool_call_start":
+          localToolCalls.push(event.toolCall);
+          streamToolCalls = [...localToolCalls];
+          break;
+        case "tool_call_end": {
+          const idx = localToolCalls.findIndex((t: ToolCall) => t.id === event.toolCall.id);
+          if (idx >= 0) localToolCalls[idx] = event.toolCall;
+          streamToolCalls = [...localToolCalls];
+          break;
+        }
+        case "error":
+          streamText += `\n\n**Error:** ${event.error}`;
+          break;
+      }
+    }
+    const result = stream.result;
 
     messages = [
       ...messages,

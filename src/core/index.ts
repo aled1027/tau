@@ -1,5 +1,5 @@
 // pi-browser core library — Agent is the primary public API
-export { Agent } from "./agent.js";
+export { Agent, PromptStream } from "./agent.js";
 export type { AgentConfig, ThreadMeta } from "./agent.js";
 
 export type {
@@ -9,7 +9,6 @@ export type {
   ToolDefinition,
   AgentEvent,
   PromptResult,
-  PromptCallbacks,
 } from "./types.js";
 
 export type {

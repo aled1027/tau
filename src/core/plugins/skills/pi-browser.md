@@ -28,7 +28,7 @@ src/core/plugins/
 ## Core Concepts
 
 ### Agent
-The `Agent` class is the primary API. Create one with `Agent.create({ apiKey })`. Use `agent.send(text)` to send messages and get responses. The agent manages messages, tools, extensions, skills, templates, threads, and persistence. It implements `ExtensionHost`, so extensions receive the agent directly.
+The `Agent` class is the primary API. Create one with `Agent.create({ apiKey })`. Use `agent.prompt(text)` to send messages and get responses — it returns a `PromptStream` that can be both awaited (simple) and async-iterated (streaming). The agent manages messages, tools, extensions, skills, templates, threads, and persistence. It implements `ExtensionHost`, so extensions receive the agent directly.
 
 ### VirtualFS
 An in-memory filesystem shared across all threads (per-agent). The agent's built-in tools (read, write, edit, list) operate on it. Access via `agent.fs`. VFS is persisted independently of threads. Dynamic extensions and skills are stored in `/.pi-browser/` on VFS and auto-loaded on startup.

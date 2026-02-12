@@ -12,7 +12,7 @@
  * directly and can call registerTool(), on(), requestUserInput().
  */
 
-import type { Message, AgentEvent, ToolDefinition, PromptResult, PromptCallbacks } from "./types.js";
+import type { Message, AgentEvent, ToolDefinition, PromptResult, ToolCall } from "./types.js";
 import type { Extension, UserInputRequest, UserInputResponse, ExtensionHost } from "./extensions.js";
 import type { Skill } from "./skills.js";
 import type { PromptTemplate } from "./prompt-templates.js";
@@ -71,6 +71,90 @@ The user can type \`/name\` commands in the chat input to expand prompt template
 - When you need clarification or a decision from the user, use a tool to ask them rather than guessing.
 - When a task matches an available skill, load and follow that skill's instructions.
 - Remember that files only exist in the virtual filesystem. If the user mentions a file, check if it exists with \`list\` or \`read\` first.`;
+
+/**
+ * A stream of agent events that is both async-iterable and awaitable.
+ *
+ * - **Await it** to get the final `PromptResult` (simple case):
+ *   ```ts
+ *   const result = await agent.prompt("Hello");
+ *   console.log(result.text);
+ *   ```
+ *
+ * - **Iterate it** for streaming updates, then read `.result`:
+ *   ```ts
+ *   const stream = agent.prompt("Hello");
+ *   for await (const event of stream) {
+ *     if (event.type === "text_delta") updateUI(event.delta);
+ *   }
+ *   console.log(stream.result.text);
+ *   ```
+ */
+export class PromptStream implements AsyncIterable<AgentEvent>, PromiseLike<PromptResult> {
+  private _result: PromptResult | null = null;
+  private _promise: Promise<PromptResult> | null = null;
+  private _generator: AsyncGenerator<AgentEvent>;
+
+  constructor(generator: AsyncGenerator<AgentEvent>) {
+    this._generator = generator;
+  }
+
+  /** The accumulated result. Available after iteration completes. */
+  get result(): PromptResult {
+    if (!this._result) {
+      throw new Error("PromptStream not yet consumed. Await or iterate it first.");
+    }
+    return this._result;
+  }
+
+  /** Async-iterate over events for streaming. */
+  async *[Symbol.asyncIterator](): AsyncGenerator<AgentEvent> {
+    let fullText = "";
+    const toolCalls: ToolCall[] = [];
+
+    for await (const event of this._generator) {
+      switch (event.type) {
+        case "text_delta":
+          fullText += event.delta;
+          break;
+        case "tool_call_start":
+          toolCalls.push(event.toolCall);
+          break;
+        case "tool_call_end": {
+          const idx = toolCalls.findIndex((tc) => tc.id === event.toolCall.id);
+          if (idx >= 0) toolCalls[idx] = event.toolCall;
+          break;
+        }
+      }
+      yield event;
+    }
+
+    this._result = { text: fullText, toolCalls };
+  }
+
+  /**
+   * Makes PromptStream awaitable. Consumes the entire stream and returns
+   * the accumulated result.
+   */
+  then<TResult1 = PromptResult, TResult2 = never>(
+    onfulfilled?: ((value: PromptResult) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): Promise<TResult1 | TResult2> {
+    if (!this._promise) {
+      this._promise = this.consume();
+    }
+    return this._promise.then(onfulfilled, onrejected);
+  }
+
+  private async consume(): Promise<PromptResult> {
+    // Drain the iterator, which populates this._result
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for await (const _event of this) {
+      // just consume
+    }
+    return this._result!;
+  }
+}
 
 export class Agent implements ExtensionHost {
   readonly extensions: ExtensionRegistry;
@@ -379,13 +463,29 @@ export class Agent implements ExtensionHost {
   // ---------------------------------------------------------------------------
 
   /**
-   * Send a user message and stream back agent events.
-   * Auto-persists after completion. Auto-names thread on first message.
+   * Send a message to the agent. Returns a `PromptStream` that can be
+   * both awaited (simple) and async-iterated (streaming).
    *
-   * Most callers should use `prompt()` instead. Use this when you need
-   * fine-grained control over the event stream.
+   * **Simple — just await it:**
+   * ```ts
+   * const result = await agent.prompt("Hello");
+   * console.log(result.text);
+   * ```
+   *
+   * **Streaming — iterate for events, then read the result:**
+   * ```ts
+   * const stream = agent.prompt("Hello");
+   * for await (const event of stream) {
+   *   if (event.type === "text_delta") updateUI(event.delta);
+   * }
+   * console.log(stream.result.text);
+   * ```
    */
-  async *advancedPrompt(text: string): AsyncGenerator<AgentEvent> {
+  prompt(text: string): PromptStream {
+    return new PromptStream(this.runPrompt(text));
+  }
+
+  private async *runPrompt(text: string): AsyncGenerator<AgentEvent> {
     await this._ready;
 
     // Try prompt template expansion
@@ -439,58 +539,6 @@ export class Agent implements ExtensionHost {
 
     // Auto-persist after each completed turn
     await this.persist();
-  }
-
-  /**
-   * Send a message and get back the result.
-   *
-   * This is the primary way to interact with the agent. Use optional
-   * callbacks for streaming UI updates. Returns the final accumulated
-   * text and tool calls.
-   *
-   * ```ts
-   * const result = await agent.prompt("Hello", {
-   *   onText: (delta, full) => updateUI(full),
-   *   onToolCallEnd: (tc) => console.log("Tool done:", tc.name),
-   * });
-   * console.log(result.text, result.toolCalls);
-   * ```
-   */
-  async prompt(text: string, callbacks?: PromptCallbacks): Promise<PromptResult> {
-    let fullText = "";
-    const toolCalls: import("./types.js").ToolCall[] = [];
-
-    try {
-      for await (const event of this.advancedPrompt(text)) {
-        switch (event.type) {
-          case "text_delta":
-            fullText += event.delta;
-            callbacks?.onText?.(event.delta, fullText);
-            break;
-          case "tool_call_start":
-            toolCalls.push(event.toolCall);
-            callbacks?.onToolCallStart?.(event.toolCall);
-            break;
-          case "tool_call_end": {
-            const idx = toolCalls.findIndex((tc) => tc.id === event.toolCall.id);
-            if (idx >= 0) toolCalls[idx] = event.toolCall;
-            callbacks?.onToolCallEnd?.(event.toolCall);
-            break;
-          }
-          case "error":
-            callbacks?.onError?.(event.error);
-            break;
-        }
-      }
-    } catch (e) {
-      if ((e as Error).name === "AbortError") {
-        // Return what we have so far
-      } else {
-        throw e;
-      }
-    }
-
-    return { text: fullText, toolCalls };
   }
 
   abort(): void {

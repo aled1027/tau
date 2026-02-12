@@ -469,19 +469,28 @@ export class ChatView extends LitElement {
     this.streamToolCalls = [];
 
     const streamToolCalls: ToolCall[] = [];
-    const result = await this.agent.prompt(text, {
-      onText: (_delta, full) => { this.streamText = full; },
-      onToolCallStart: (tc) => {
-        streamToolCalls.push(tc);
-        this.streamToolCalls = [...streamToolCalls];
-      },
-      onToolCallEnd: (tc) => {
-        const idx = streamToolCalls.findIndex((t) => t.id === tc.id);
-        if (idx >= 0) streamToolCalls[idx] = tc;
-        this.streamToolCalls = [...streamToolCalls];
-      },
-      onError: (err) => { this.streamText += `\n\n**Error:** ${err}`; },
-    });
+    const stream = this.agent.prompt(text);
+    for await (const event of stream) {
+      switch (event.type) {
+        case "text_delta":
+          this.streamText += event.delta;
+          break;
+        case "tool_call_start":
+          streamToolCalls.push(event.toolCall);
+          this.streamToolCalls = [...streamToolCalls];
+          break;
+        case "tool_call_end": {
+          const idx = streamToolCalls.findIndex((t) => t.id === event.toolCall.id);
+          if (idx >= 0) streamToolCalls[idx] = event.toolCall;
+          this.streamToolCalls = [...streamToolCalls];
+          break;
+        }
+        case "error":
+          this.streamText += `\n\n**Error:** ${event.error}`;
+          break;
+      }
+    }
+    const result = stream.result;
 
     this.messages = [
       ...this.messages,

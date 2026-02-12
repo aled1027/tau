@@ -470,11 +470,21 @@ export class TutorView extends LitElement {
     this.streaming = true;
     this.streamText = "";
 
-    const result = await this.agent.prompt(text, {
-      onText: (_delta, full) => { this.streamText = full; },
-      onToolCallEnd: () => { this.syncEditorFromFS(); },
-      onError: (err) => { this.streamText += `\n❌ Error: ${err}`; },
-    });
+    const stream = this.agent.prompt(text);
+    for await (const event of stream) {
+      switch (event.type) {
+        case "text_delta":
+          this.streamText += event.delta;
+          break;
+        case "tool_call_end":
+          this.syncEditorFromFS();
+          break;
+        case "error":
+          this.streamText += `\n❌ Error: ${event.error}`;
+          break;
+      }
+    }
+    const result = stream.result;
 
     this.messages = [...this.messages, { role: "tutor", text: result.text }];
     this.streamText = "";

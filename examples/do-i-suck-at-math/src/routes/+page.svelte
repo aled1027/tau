@@ -41,7 +41,7 @@
     const formData = new FormData(event.target as HTMLFormElement);
     const question = formData.get("question") as string;
 
-    const result = await agent.send(question);
+    const result = await agent.prompt(question);
     response = result.text;
     asking = false;
   }

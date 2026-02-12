@@ -6,12 +6,7 @@ Inspired by the real [pi coding agent](https://github.com/badlogic/pi-mono/tree/
 
 ## TODO:
 
-- Change the skills in src/core/plugins/skills to be markdown files and loaded as markdown file skills
-- Review the API
-- Add the ability for pi-browser to writes its own extension and load them
-    - Add a function that's delete state so the user can restart
-- Remove callback API structure and async/await only? Ask pi about first
-
+  - Add a function that's delete state so the user can restart
 - Later: sync state or export. export would be download a zip and maybe could
 
 ## Quick start
@@ -21,15 +16,16 @@ import { Agent } from "pi-browser";
 
 const agent = await Agent.create({ apiKey: "sk-or-..." });
 
-// Simple
-const result = await agent.send("Write hello world in Python");
+// Simple — just await it
+const result = await agent.prompt("Write hello world in Python");
 console.log(result.text);
 
-// With streaming
-const result = await agent.send("Build a React component", {
-  onText: (_delta, full) => updateUI(full),
-  onToolCallEnd: (tc) => console.log(`Tool: ${tc.name}`),
-});
+// Streaming — iterate for events, then read the result
+const stream = agent.prompt("Build a React component");
+for await (const event of stream) {
+  if (event.type === "text_delta") updateUI(event.delta);
+}
+console.log(stream.result.text);
 ```
 
 See [docs/pi-browser-core.md](docs/pi-browser-core.md) for the full API reference.
