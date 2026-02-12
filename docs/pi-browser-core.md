@@ -70,7 +70,7 @@ Agent, PromptStream, VirtualFS
 // Types
 AgentConfig, Message, ToolCall, ToolResult, ToolDefinition,
 AgentEvent, PromptResult, ThreadMeta,
-Extension, ExtensionHost, PiBrowserAPI (deprecated),
+Extension, ExtensionHost,
 UserInputField, UserInputRequest, UserInputResponse,
 Skill, PromptTemplate
 
@@ -104,6 +104,7 @@ interface AgentConfig {
   extensions?: Extension[];            // Add tools + event listeners
   skills?: Skill[];                    // On-demand instruction documents
   promptTemplates?: PromptTemplate[];  // /slash command templates
+  timeout?: number;                    // Per-request timeout in ms (default: 120000)
 }
 ```
 
@@ -112,6 +113,10 @@ interface AgentConfig {
 #### `prompt(text): PromptStream`
 
 The single method for interacting with the agent. Returns a `PromptStream` that is both **async-iterable** (for streaming) and **directly awaitable** (for the simple case).
+
+A `PromptStream` can only be consumed once — either by awaiting it or by async-iterating it. Iterating a second time yields no events. If both `.then()` and iteration are used on the same stream, only the first consumption produces events.
+
+The system prompt is rebuilt before each call to reflect any dynamically added or removed skills, so skills registered via `addSkill()` are always included even on existing threads.
 
 ```typescript
 interface PromptResult {
@@ -307,7 +312,9 @@ type AgentEvent =
 | `read` | `path` | Read a file's contents |
 | `write` | `path`, `content` | Create or overwrite a file |
 | `edit` | `path`, `oldText`, `newText` | Replace exact text in a file |
-| `list` | `prefix` (default `/`) | List files under a prefix |
+| `list` | `prefix` (default `/`) | List files under a directory prefix |
+
+All built-in tool schemas include `additionalProperties: false` to prevent models from hallucinating extra parameters.
 
 ### ToolDefinition
 
@@ -336,6 +343,7 @@ const myExtension: Extension = (agent) => {
       type: "object",
       properties: { url: { type: "string" } },
       required: ["url"],
+      additionalProperties: false,
     },
     execute: async (args) => {
       const text = await (await fetch(args.url as string)).text();
@@ -370,6 +378,8 @@ const restored = VirtualFS.fromJSON(json);
 const snap = fs.snapshot();   // Map<string, string>
 fs.restore(snap);
 ```
+
+`list()` matches files under a directory prefix only — `fs.list("/src")` returns files whose paths start with `/src/`, not a file named exactly `/src`.
 
 Pre-populate via `agent.fs` before prompting:
 
@@ -487,6 +497,8 @@ type UserInputResponse = Record<string, string>;
 ## Skills
 
 Named instruction documents loaded on-demand. Only names and descriptions appear in the system prompt — full content is loaded when the model calls the auto-registered `read_skill` tool.
+
+The system prompt is rebuilt before each `prompt()` call, so dynamically added or removed skills are always reflected — even on existing threads.
 
 ```typescript
 interface Skill {
@@ -617,6 +629,10 @@ Templates are auto-expanded by `prompt()` — the model sees the final expanded 
 
 ## Persistence
 
+### Storage fallback
+
+Persistence uses IndexedDB for large data (messages, VFS) and localStorage for small metadata (thread list, active thread). If IndexedDB is unavailable (e.g. private browsing in some browsers), the agent falls back to in-memory storage — everything works normally but data is lost on page reload.
+
 ### VFS persistence (per-agent)
 
 The VFS is persisted independently of threads in its own IndexedDB store (`agent-vfs`). This means:
@@ -656,6 +672,21 @@ await agent.deleteThread(id);
 
 ---
 
+## Timeouts
+
+Each OpenRouter API request has a configurable timeout (default: 120 seconds). If the timeout elapses before the response completes, the request is aborted.
+
+```typescript
+const agent = await Agent.create({
+  apiKey: "sk-or-...",
+  timeout: 60_000, // 60 seconds per request
+});
+```
+
+The timeout applies per HTTP request, not per `prompt()` call. A prompt that triggers multiple tool-loop iterations will have each iteration independently timed. The timeout is combined with `abort()` — whichever fires first cancels the request.
+
+---
+
 ## Full example
 
 ```typescript
@@ -667,7 +698,7 @@ const timestampExtension: Extension = (agent) => {
   agent.registerTool({
     name: "timestamp",
     description: "Get the current ISO timestamp",
-    parameters: { type: "object", properties: {} },
+    parameters: { type: "object", properties: {}, additionalProperties: false },
     execute: async () => ({ content: new Date().toISOString(), isError: false }),
   });
 };
@@ -692,6 +723,7 @@ const agent = await Agent.create({
   extensions: [askUserExtension, timestampExtension],
   skills: [codeReviewSkill, cssSkill],
   promptTemplates: [...builtinTemplates, styleTemplate],
+  timeout: 60_000, // 60s per request
 });
 
 // Pre-populate filesystem
@@ -706,7 +738,12 @@ await agent.addExtension(`(agent) => {
   agent.registerTool({
     name: "fetch_url",
     description: "Fetch a URL",
-    parameters: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
+    parameters: {
+      type: "object",
+      properties: { url: { type: "string" } },
+      required: ["url"],
+      additionalProperties: false,
+    },
     execute: async (args) => {
       const text = await (await fetch(args.url)).text();
       return { content: text.slice(0, 5000), isError: false };
