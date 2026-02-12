@@ -1,5 +1,6 @@
 import typescript from "@rollup/plugin-typescript";
 import { dts } from "rollup-plugin-dts";
+import embedSources from "./rollup-plugin-embed-sources.js";
 
 export default [
   {
@@ -10,6 +11,7 @@ export default [
       preserveModules: false,
     },
     plugins: [
+      embedSources(),
       typescript({
         tsconfig: "./tsconfig.build.json",
       }),

@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { Agent, askUserExtension, codeReviewSkill, litComponentSkill, builtinTemplates } from "pi-browser";
+import { Agent, askUserExtension, createSelfEditExtension, loadSourcesIntoVFS, codeReviewSkill, litComponentSkill, builtinTemplates } from "pi-browser";
 import "./api-key-screen.js";
 import "./chat-view.js";
 
@@ -26,16 +26,20 @@ export class AppRoot extends LitElement {
     }
   }
 
+  private agentRef: { current: Agent | null } = { current: null };
+
   private async startWithKey(key: string) {
     localStorage.setItem("pi-browser-api-key", key);
     this.apiKey = key;
 
     this.agent = await Agent.create({
       apiKey: key,
-      extensions: [askUserExtension],
+      extensions: [askUserExtension, createSelfEditExtension(this.agentRef)],
       skills: [codeReviewSkill, litComponentSkill],
       promptTemplates: builtinTemplates,
     });
+    this.agentRef.current = this.agent;
+    await loadSourcesIntoVFS(this.agent);
     this.started = true;
   }
 

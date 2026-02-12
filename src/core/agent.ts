@@ -60,7 +60,24 @@ The user can type \`/name\` commands in the chat input to expand prompt template
 - When asked to create or modify code, use the filesystem tools to do so — don't just show code in chat.
 - When you need clarification or a decision from the user, use a tool to ask them rather than guessing.
 - When a task matches an available skill, load and follow that skill's instructions.
-- Remember that files only exist in the virtual filesystem. If the user mentions a file, check if it exists with \`list\` or \`read\` first.`;
+- Remember that files only exist in the virtual filesystem. If the user mentions a file, check if it exists with \`list\` or \`read\` first.
+
+## Self-editing
+
+Your own source code is loaded into the virtual filesystem under \`/src/core/\`. You can read and edit these files using the standard file tools. This lets you inspect and modify your own implementation.
+
+Key source files:
+- \`/src/core/openrouter.ts\` — OpenRouter API client, model configuration
+- \`/src/core/agent.ts\` — Agent class, system prompt, tool orchestration
+- \`/src/core/tools.ts\` — VirtualFS and built-in tool definitions
+- \`/src/core/extensions.ts\` — Extension system
+- \`/src/core/types.ts\` — Core type definitions
+
+You also have these self-modification tools:
+- **get_model** / **set_model** — Check or change the active LLM model at runtime
+- **download_source** — Export modified source files as browser downloads so the user can apply changes to the real codebase
+
+When asked to modify your own behavior, use \`read\` to inspect the relevant source file, \`edit\` to make changes in the VFS, \`set_model\` for model changes, and \`download_source\` to export the result.`;
 
 export class Agent {
   readonly extensions: ExtensionRegistry;
@@ -129,6 +146,16 @@ export class Agent {
 
   get activeThreadId(): string | null {
     return this._activeThreadId;
+  }
+
+  /** Current model identifier */
+  get model(): string {
+    return this.config.model ?? "anthropic/claude-sonnet-4";
+  }
+
+  /** Change the model used for subsequent prompts */
+  setModel(model: string): void {
+    this.config.model = model;
   }
 
   /** Wait for extensions to finish loading */

@@ -43,7 +43,7 @@ function writeThreadList(list: ThreadMeta[]): void {
 // ---------------------------------------------------------------------------
 
 const DB_NAME = "pi-browser";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_MESSAGES = "messages"; // key: threadId, value: Message[]
 const STORE_FS = "fs"; // key: threadId, value: Record<string,string>
 

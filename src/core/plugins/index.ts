@@ -1,6 +1,7 @@
 // All plugins: extensions, skills, and prompt templates
 
 export { askUserExtension } from "./extensions/ask-user.js";
+export { createSelfEditExtension, loadSourcesIntoVFS } from "./extensions/self-edit.js";
 
 export { codeReviewSkill } from "./skills/code-review.js";
 export { litComponentSkill } from "./skills/lit-component.js";

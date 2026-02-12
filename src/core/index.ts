@@ -27,6 +27,8 @@ export { VirtualFS } from "./tools.js";
 // Plugins (built-in extensions, skills, prompt templates)
 export {
   askUserExtension,
+  createSelfEditExtension,
+  loadSourcesIntoVFS,
   codeReviewSkill,
   litComponentSkill,
   builtinTemplates,

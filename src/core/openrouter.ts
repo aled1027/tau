@@ -41,11 +41,37 @@ export async function* runAgent(
 ): AsyncGenerator<AgentEvent> {
   const model = options.model ?? DEFAULT_MODEL;
 
-  // Build OpenAI-format messages
-  const openaiMessages = messages.map((m) => ({
-    role: m.role,
-    content: m.content,
-  }));
+  // Build OpenAI-format messages, preserving tool call structure
+  const openaiMessages = messages.map((m) => {
+    if (m.role === "assistant" && m.toolCalls && m.toolCalls.length > 0) {
+      // Assistant message with tool calls
+      return {
+        role: m.role,
+        content: m.content || null,
+        tool_calls: m.toolCalls.map((tc) => ({
+          id: tc.id,
+          type: "function" as const,
+          function: {
+            name: tc.name,
+            arguments: JSON.stringify(tc.arguments),
+          },
+        })),
+      };
+    }
+    if (m.role === "tool" && m.toolCallId) {
+      // Tool result message
+      return {
+        role: m.role,
+        tool_call_id: m.toolCallId,
+        content: m.content,
+      };
+    }
+    // Regular user/system/assistant message
+    return {
+      role: m.role,
+      content: m.content,
+    };
+  });
 
   // Tool loop: keep going until the model responds with just text
   while (true) {
