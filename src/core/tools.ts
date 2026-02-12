@@ -49,6 +49,33 @@ export class VirtualFS {
     return this.files.has(this.normalize(path));
   }
 
+  /** Return a shallow copy of all files */
+  snapshot(): Map<string, string> {
+    return new Map(this.files);
+  }
+
+  /** Replace all files with the given map */
+  restore(files: Map<string, string>): void {
+    this.files.clear();
+    for (const [k, v] of files) {
+      this.files.set(k, v);
+    }
+  }
+
+  /** Serialize to a plain object for JSON storage */
+  toJSON(): Record<string, string> {
+    return Object.fromEntries(this.files);
+  }
+
+  /** Restore from a plain object (as produced by toJSON) */
+  static fromJSON(data: Record<string, string>): VirtualFS {
+    const fs = new VirtualFS();
+    for (const [k, v] of Object.entries(data)) {
+      fs.files.set(k, v);
+    }
+    return fs;
+  }
+
   private normalize(path: string): string {
     // Simple normalization: ensure leading slash, collapse //
     let p = path.startsWith("/") ? path : "/" + path;

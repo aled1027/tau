@@ -27,3 +27,9 @@ export type { PromptTemplate } from "./prompt-templates.js";
 
 export { VirtualFS, createTools } from "./tools.js";
 export { runAgent } from "./openrouter.js";
+
+export { ThreadStorage } from "./storage.js";
+export type { ThreadMeta } from "./storage.js";
+
+export { ThreadManager } from "./thread-manager.js";
+export type { ThreadData } from "./thread-manager.js";

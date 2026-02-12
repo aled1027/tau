@@ -22,6 +22,10 @@ export interface AgentConfig {
   extensions?: Extension[];
   skills?: Skill[];
   promptTemplates?: PromptTemplate[];
+  /** Pre-existing messages to restore a previous session */
+  initialMessages?: Message[];
+  /** Pre-existing filesystem contents to restore a previous session */
+  initialFS?: Record<string, string>;
 }
 
 const DEFAULT_SYSTEM_PROMPT = `You are pi-browser, a coding agent that runs entirely in the browser.
@@ -71,7 +75,14 @@ export class Agent {
 
   constructor(config: AgentConfig) {
     this.config = config;
-    this.fs = new VirtualFS();
+
+    // Restore or create virtual filesystem
+    if (config.initialFS) {
+      this.fs = VirtualFS.fromJSON(config.initialFS);
+    } else {
+      this.fs = new VirtualFS();
+    }
+
     this.builtinTools = createTools(this.fs);
     this.extensions = new ExtensionRegistry();
 
@@ -87,19 +98,24 @@ export class Agent {
       this.promptTemplates.registerAll(config.promptTemplates);
     }
 
-    // Build system prompt with skill listings
-    const basePrompt = config.systemPrompt ?? DEFAULT_SYSTEM_PROMPT;
-    const skillFragment = this.skills.systemPromptFragment();
-    const systemPrompt = skillFragment
-      ? basePrompt + "\n" + skillFragment
-      : basePrompt;
+    // Restore previous messages or start fresh
+    if (config.initialMessages && config.initialMessages.length > 0) {
+      this.messages = [...config.initialMessages];
+    } else {
+      // Build system prompt with skill listings
+      const basePrompt = config.systemPrompt ?? DEFAULT_SYSTEM_PROMPT;
+      const skillFragment = this.skills.systemPromptFragment();
+      const systemPrompt = skillFragment
+        ? basePrompt + "\n" + skillFragment
+        : basePrompt;
 
-    this.messages = [
-      {
-        role: "system",
-        content: systemPrompt,
-      },
-    ];
+      this.messages = [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+      ];
+    }
 
     // Load extensions asynchronously
     this._ready = this.extensions.load(config.extensions ?? []);
@@ -132,6 +148,14 @@ export class Agent {
 
   getMessages(): Message[] {
     return [...this.messages];
+  }
+
+  /** Serialize agent state for persistence */
+  serialize(): { messages: Message[]; fs: Record<string, string> } {
+    return {
+      messages: [...this.messages],
+      fs: this.fs.toJSON(),
+    };
   }
 
   /**
