@@ -20,8 +20,14 @@ export class AppRoot extends LitElement {
   @state() private agentVersion = 0; // bump to force chat-view re-render on thread switch
   private agent: Agent | null = null;
 
-  private async handleStart(e: CustomEvent<string>) {
-    const key = e.detail;
+  connectedCallback() {
+    super.connectedCallback();
+    if (this.apiKey) {
+      this.startWithKey(this.apiKey);
+    }
+  }
+
+  private async startWithKey(key: string) {
     localStorage.setItem("pi-browser-api-key", key);
     this.apiKey = key;
 
@@ -32,6 +38,10 @@ export class AppRoot extends LitElement {
       promptTemplates: builtinTemplates,
     });
     this.started = true;
+  }
+
+  private handleStart(e: CustomEvent<string>) {
+    this.startWithKey(e.detail);
   }
 
   private async handleThreadChanged() {

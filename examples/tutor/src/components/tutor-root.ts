@@ -95,8 +95,14 @@ export class TutorRoot extends LitElement {
   @state() private agentVersion = 0;
   private agent: Agent | null = null;
 
-  private async handleStart(e: CustomEvent<string>) {
-    const key = e.detail;
+  connectedCallback() {
+    super.connectedCallback();
+    if (this.apiKey) {
+      this.startWithKey(this.apiKey);
+    }
+  }
+
+  private async startWithKey(key: string) {
     localStorage.setItem("pi-browser-api-key", key);
     this.apiKey = key;
 
@@ -107,6 +113,10 @@ export class TutorRoot extends LitElement {
       promptTemplates: tutorTemplates,
     });
     this.started = true;
+  }
+
+  private handleStart(e: CustomEvent<string>) {
+    this.startWithKey(e.detail);
   }
 
   private handleThreadChanged() {
