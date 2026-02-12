@@ -10,6 +10,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
+        main: resolve(__dirname, "index.html"),
         chat: resolve(__dirname, "examples/chat/index.html"),
         tutor: resolve(__dirname, "examples/tutor/index.html"),
       },
