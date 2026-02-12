@@ -5,10 +5,34 @@ A browser-based AI coding agent powered by [OpenRouter](https://openrouter.ai/).
 Inspired by the real [pi coding agent](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent).
 
 ## TODO:
-
 - Add the ability for pi-browser to writes its own extension and load them
     - It needs to know how to write its own extension (via default skill)
     - It needs to be able to load them on the fly
+    - Add a function that's delete state so the user can restart
+- Remove callback API structure and async/await only? Ask pi about first
+- Later: sync state or export. export would be download a zip and maybe could
+
+## Quick start
+
+```typescript
+import { Agent } from "pi-browser";
+
+const agent = await Agent.create({ apiKey: "sk-or-..." });
+
+// Simple
+const result = await agent.send("Write hello world in Python");
+console.log(result.text);
+
+// With streaming
+const result = await agent.send("Build a React component", {
+  onText: (_delta, full) => updateUI(full),
+  onToolCallEnd: (tc) => console.log(`Tool: ${tc.name}`),
+});
+```
+
+See [docs/pi-browser-core.md](docs/pi-browser-core.md) for the full API reference.
+
+
 
 ## Setup
 

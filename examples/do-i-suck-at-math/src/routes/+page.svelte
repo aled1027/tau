@@ -1,36 +1,26 @@
 <script lang="ts">
-  import { Agent, type AgentEvent } from "pi-browser";
+  import { Agent } from "pi-browser";
   import { onMount } from "svelte";
 
   let agent: Agent | null = $state(null);
   let response = $state("");
 
-  async function getResponse(
-    response: AsyncGenerator<AgentEvent>,
-  ): Promise<string> {
-    let fullText = "";
-    for await (const event of response) {
-      switch (event.type) {
-        case "text_delta":
-          fullText += event.delta;
-          break;
-        case "tool_call_start":
-          break;
-        case "tool_call_end":
-          break;
-        case "error":
-          fullText += `\n\n**Error:** ${event.error}`;
-          break;
-      }
-    }
-    return fullText;
+  function saveApiKey(apiKey: string) {
+    localStorage.setItem("openrouterApiKey", apiKey);
   }
 
-  async function initializeAgent(event: Event) {
+  function getApiKey() {
+    return localStorage.getItem("openrouterApiKey") ?? "";
+  }
+
+  function submitInitializeAgent(event: Event) {
     event.preventDefault();
     const formData = new FormData(event.target as HTMLFormElement);
     const apiKey = formData.get("openrouterApiKey") as string;
+    initializeAgent(apiKey);
+  }
 
+  async function initializeAgent(apiKey: string) {
     agent = await Agent.create({
       apiKey: apiKey,
       extensions: [],
@@ -39,9 +29,16 @@
       systemPrompt: "respond like a cat, but only in 10 words or less",
     });
     console.log(agent);
-    const r = await agent.prompt("Hello, how are you?");
-    response = await getResponse(r);
+    const result = await agent.send("Hello, how are you?");
+    response = result.text;
   }
+
+  onMount(() => {
+    const apiKey = getApiKey();
+    if (apiKey) {
+      initializeAgent(apiKey);
+    }
+  });
 </script>
 
 <h1>Welcome to SvelteKit</h1>
@@ -50,10 +47,12 @@
   documentation
 </p>
 
-<form onsubmit={initializeAgent}>
-  <input type="text" name="openrouterApiKey" />
-  <button type="submit">Initialize Agent</button>
-</form>
+{#if !agent}
+  <form onsubmit={submitInitializeAgent}>
+    <input type="text" name="openrouterApiKey" />
+    <button type="submit">Initialize Agent</button>
+  </form>
+{/if}
 
 <pre>
   {response}
