@@ -67,9 +67,17 @@ CRITICAL: Do NOT produce any conversational text between questions. Only use the
   // --- Start the test ---
   async function startTest() {
     if (!agent) return;
+
+    // Always start on a fresh thread so prior history doesn't interfere
+    await agent.newThread("Math Assessment");
+
     phase = "testing";
     questionNumber = 0;
     answeredQuestions = [];
+    pendingResolve = null;
+    currentQuestion = "";
+    currentCategory = "";
+    answerValue = "";
     reportMarkdown = "";
 
     const stream = agent.prompt(

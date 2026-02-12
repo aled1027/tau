@@ -46,11 +46,34 @@ export async function* runAgent(
   const model = options.model ?? DEFAULT_MODEL;
   const timeout = options.timeout ?? DEFAULT_TIMEOUT;
 
-  // Build OpenAI-format messages
-  const openaiMessages = messages.map((m) => ({
-    role: m.role,
-    content: m.content,
-  }));
+  // Build OpenAI-format messages, preserving tool_calls and tool_call_id
+  const openaiMessages = messages.map((m) => {
+    const msg: Record<string, unknown> = {
+      role: m.role,
+      content: m.content,
+    };
+    // Assistant messages with tool calls need the tool_calls array
+    if (m.role === "assistant" && m.toolCalls && m.toolCalls.length > 0) {
+      msg.tool_calls = m.toolCalls.map((tc) => ({
+        id: tc.id,
+        type: "function",
+        function: {
+          name: tc.name,
+          arguments:
+            typeof tc.arguments === "string"
+              ? tc.arguments
+              : JSON.stringify(tc.arguments),
+        },
+      }));
+      // OpenAI requires content to be null (not empty string) when there are tool calls and no text
+      if (!m.content) msg.content = null;
+    }
+    // Tool result messages need tool_call_id
+    if (m.role === "tool" && m.toolCallId) {
+      msg.tool_call_id = m.toolCallId;
+    }
+    return msg;
+  });
 
   const referer =
     typeof window !== "undefined" && window.location
