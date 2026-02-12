@@ -6,14 +6,10 @@ Inspired by the real [pi coding agent](https://github.com/badlogic/pi-mono/tree/
 
 ## Setup
 
-Requires [Node.js](https://nodejs.org/) (v18+).
-
 ```bash
 npm install    # installs root + all examples via workspaces
 npm run build  # builds the core library to dist/
 ```
-
-You'll need an [OpenRouter API key](https://openrouter.ai/keys) to use the agent.
 
 ## Development
 
@@ -21,7 +17,10 @@ Run the library build in watch mode alongside an example:
 
 ```bash
 npm run build:watch          # rebuild library on changes
-npm run dev:chat             # or dev:tutor, dev:sveltekit
+
+# If you want to test with an app, then do:
+cd your/app/path/
+npm run dev
 ```
 
 ## Examples
@@ -31,4 +30,14 @@ npm run dev:chat             # or dev:tutor, dev:sveltekit
 - **SvelteKit Chat** (`npm run dev:sveltekit`) — Chat app built with SvelteKit
 
 Examples import the library as `"pi-browser"` via `file:` references resolved through npm workspaces.
+
+To run the examples:
+
+```bash
+npm run build
+
+# In a separate terminal:
+cd examples/chat
+npm run dev
+```
 

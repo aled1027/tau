@@ -18,9 +18,6 @@
     "clean": "rm -r dist 2>/dev/null; true",
     "build": "npm run clean && rollup -c",
     "build:watch": "rollup -c --watch",
-    "dev:chat": "cd examples/chat && npm run dev",
-    "dev:tutor": "cd examples/tutor && npm run dev",
-    "dev:sveltekit": "cd examples/sveltekit-chat && npm run dev",
     "typecheck": "tsc --noEmit"
   },
   "workspaces": [
