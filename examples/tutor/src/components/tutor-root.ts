@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { Agent, askUserExtension } from "$core";
+import { Agent, askUserExtension } from "pi-browser";
 import { tutorTemplates, runCodeExtension } from "../plugins/index.js";
 import "./api-key-screen.js";
 import "./tutor-view.js";

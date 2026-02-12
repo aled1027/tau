@@ -8,7 +8,7 @@ import {
   codeReviewSkill,
   litComponentSkill,
   builtinTemplates,
-} from "$core";
+} from "pi-browser";
 
 export async function createAgent(apiKey: string): Promise<Agent> {
   return Agent.create({

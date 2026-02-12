@@ -7,38 +7,39 @@ A browser-based AI coding agent powered by [OpenRouter](https://openrouter.ai/).
 Requires [Node.js](https://nodejs.org/) (v18+).
 
 ```bash
-# Install root dependencies
-npm install
-
-# Install all example dependencies
-npm run install:all
+npm install    # installs root + all examples via workspaces
+npm run build  # builds the core library to dist/
 ```
 
 You'll need an [OpenRouter API key](https://openrouter.ai/keys) to use the agent.
 
+## Development
+
+Run the library build in watch mode alongside an example:
+
+```bash
+npm run build:watch          # rebuild library on changes
+npm run dev:chat             # or dev:tutor, dev:sveltekit
+```
+
 ## Examples
 
-**Chat** — Minimal chat interface.
-```bash
-npm run dev:chat
-```
+- **Chat** (`npm run dev:chat`) — Minimal chat interface (Lit + Vite)
+- **Tutor** (`npm run dev:tutor`) — AI tutor with skills and prompt templates (Lit + Vite)
+- **SvelteKit Chat** (`npm run dev:sveltekit`) — Chat app built with SvelteKit
 
-**Tutor** — AI tutor with built-in skills and prompt templates.
-```bash
-npm run dev:tutor
-```
-
-**SvelteKit Chat** — Chat app built with SvelteKit.
-```bash
-npm run dev:sveltekit
-```
+Examples import the library as `"pi-browser"` via `file:` references resolved through npm workspaces.
 
 ## Project Structure
 
 ```
-src/core/       Core agent library (agent, tools, extensions, skills, OpenRouter client)
+src/core/              Core agent library source
+dist/                  Built library (via Rollup)
 examples/
-  chat/         Vanilla chat example (Vite)
-  tutor/        Tutor example (Vite)
-  sveltekit-chat/  SvelteKit example
+  chat/                Vanilla chat example
+  tutor/               Tutor example
+  sveltekit-chat/      SvelteKit example
+rollup.config.js       Rollup build config
+tsconfig.json          TypeScript config (type-checking)
+tsconfig.build.json    TypeScript config (library build)
 ```

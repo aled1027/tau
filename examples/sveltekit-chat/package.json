@@ -11,6 +11,7 @@
   "dependencies": {
     "@sveltejs/adapter-static": "^3.0.0",
     "@sveltejs/kit": "^2.0.0",
+    "pi-browser": "file:../..",
     "svelte": "^5.0.0"
   },
   "devDependencies": {

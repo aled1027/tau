@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { createAgent } from "$lib/agent";
-  import type { Agent, PromptTemplate, ToolCall, ThreadMeta, UserInputRequest, UserInputResponse } from "$core";
+  import type { Agent, PromptTemplate, ToolCall, ThreadMeta, UserInputRequest, UserInputResponse } from "pi-browser";
 
   // --- State ---
 

@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { UserInputRequest, UserInputField } from "$core";
+import type { UserInputRequest, UserInputField } from "pi-browser";
 
 @customElement("user-input-form")
 export class UserInputFormEl extends LitElement {

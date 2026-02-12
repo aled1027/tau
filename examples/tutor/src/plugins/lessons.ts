@@ -1,4 +1,4 @@
-import type { Skill } from "$core";
+import type { Skill } from "pi-browser";
 
 export const arrayMethodsLesson: Skill = {
   name: "arrays",

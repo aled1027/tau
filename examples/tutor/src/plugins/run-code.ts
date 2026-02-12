@@ -5,7 +5,7 @@
  * and returns the console output. Used by the tutor to verify student solutions.
  */
 
-import type { Extension } from "$core";
+import type { Extension } from "pi-browser";
 
 export const runCodeExtension: Extension = (api) => {
   api.registerTool({

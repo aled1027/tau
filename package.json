@@ -3,14 +3,34 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "clean": "rm -r dist 2>/dev/null; true",
+    "build": "npm run clean && rollup -c",
+    "build:watch": "rollup -c --watch",
     "dev:chat": "cd examples/chat && npm run dev",
     "dev:tutor": "cd examples/tutor && npm run dev",
     "dev:sveltekit": "cd examples/sveltekit-chat && npm run dev",
-    "install:all": "npm install --prefix examples/chat && npm install --prefix examples/tutor && npm install --prefix examples/sveltekit-chat",
     "typecheck": "tsc --noEmit"
   },
+  "workspaces": [
+    "examples/*"
+  ],
   "devDependencies": {
+    "@rollup/plugin-typescript": "^12.0.0",
+    "rollup": "^4.0.0",
+    "rollup-plugin-dts": "^6.0.0",
+    "tslib": "^2.8.1",
     "typescript": "^5.7.0"
   }
 }
