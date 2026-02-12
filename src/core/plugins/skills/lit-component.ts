@@ -1,4 +1,4 @@
-import type { Skill } from "$core";
+import type { Skill } from "../../skills.js";
 
 export const litComponentSkill: Skill = {
   name: "lit-component",

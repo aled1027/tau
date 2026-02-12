@@ -23,3 +23,11 @@ export type { Skill } from "./skills.js";
 export type { PromptTemplate } from "./prompt-templates.js";
 
 export { VirtualFS } from "./tools.js";
+
+// Plugins (built-in extensions, skills, prompt templates)
+export {
+  askUserExtension,
+  codeReviewSkill,
+  litComponentSkill,
+  builtinTemplates,
+} from "./plugins/index.js";

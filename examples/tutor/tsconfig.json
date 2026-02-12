@@ -8,18 +8,19 @@
     "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
-      "$core/*": ["src/core/*"],
-      "$core": ["src/core/index.ts"]
+      "$core/*": ["../../src/core/*"],
+      "$core": ["../../src/core/index.ts"]
     },
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "experimentalDecorators": true,
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"]
+  "include": ["src", "../../src/core"]
 }

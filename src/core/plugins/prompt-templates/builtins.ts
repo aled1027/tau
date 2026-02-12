@@ -1,4 +1,4 @@
-import type { PromptTemplate } from "$core";
+import type { PromptTemplate } from "../../prompt-templates.js";
 
 export const builtinTemplates: PromptTemplate[] = [
   {

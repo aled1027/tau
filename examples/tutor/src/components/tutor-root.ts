@@ -1,8 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { Agent } from "$core";
+import { Agent, askUserExtension } from "$core";
 import { tutorTemplates, runCodeExtension } from "../plugins/index.js";
-import { askUserExtension } from "../../../../src/plugins/extensions/ask-user.js";
 import "./api-key-screen.js";
 import "./tutor-view.js";
 
