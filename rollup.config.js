@@ -1,5 +1,19 @@
 import typescript from "@rollup/plugin-typescript";
 import { dts } from "rollup-plugin-dts";
+import { readFileSync } from "fs";
+
+/** Inline plugin: import .md files as raw string default exports */
+function markdown() {
+  return {
+    name: "markdown",
+    load(id) {
+      if (id.endsWith(".md")) {
+        const content = readFileSync(id, "utf-8");
+        return `export default ${JSON.stringify(content)};`;
+      }
+    },
+  };
+}
 
 export default [
   {
@@ -10,6 +24,7 @@ export default [
       preserveModules: false,
     },
     plugins: [
+      markdown(),
       typescript({
         tsconfig: "./tsconfig.build.json",
       }),

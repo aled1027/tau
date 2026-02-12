@@ -1,14 +1,12 @@
-import type { Skill } from "../../skills.js";
-
-export const codeReviewSkill: Skill = {
-  name: "code-review",
-  description:
-    "Review code for bugs, security issues, performance problems, and style. Use when asked to review or audit code.",
-  content: `# Code Review
+---
+name: code-review
+description: Review code for bugs, security issues, performance problems, and style. Use when asked to review or audit code.
+---
+# Code Review
 
 ## Process
 
-1. Read the file(s) to review using the \`read\` tool
+1. Read the file(s) to review using the `read` tool
 2. Analyze for the following categories:
 
 ### Bugs & Logic Errors
@@ -44,5 +42,4 @@ For each finding, report:
 - **Issue**: what's wrong
 - **Fix**: suggested correction
 
-Summarize with a count of findings by severity.`,
-};
+Summarize with a count of findings by severity.

@@ -5,5 +5,5 @@
     "declaration": false,
     "allowImportingTsExtensions": false
   },
-  "include": ["src/core"]
+  "include": ["src/core", "src/md.d.ts"]
 }
