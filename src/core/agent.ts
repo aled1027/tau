@@ -93,7 +93,7 @@ export class Agent implements ExtensionHost {
   // Construction
   // ---------------------------------------------------------------------------
 
-  constructor(config: AgentConfig) {
+  private constructor(config: AgentConfig) {
     this.config = config;
     this.storage = new ThreadStorage();
 
@@ -381,8 +381,11 @@ export class Agent implements ExtensionHost {
   /**
    * Send a user message and stream back agent events.
    * Auto-persists after completion. Auto-names thread on first message.
+   *
+   * Most callers should use `prompt()` instead. Use this when you need
+   * fine-grained control over the event stream.
    */
-  async *prompt(text: string): AsyncGenerator<AgentEvent> {
+  async *advancedPrompt(text: string): AsyncGenerator<AgentEvent> {
     await this._ready;
 
     // Try prompt template expansion
@@ -439,25 +442,26 @@ export class Agent implements ExtensionHost {
   }
 
   /**
-   * Simplified prompt API — send a message and get back the result.
+   * Send a message and get back the result.
    *
-   * Use optional callbacks for streaming UI updates. Returns the final
-   * accumulated text and tool calls.
+   * This is the primary way to interact with the agent. Use optional
+   * callbacks for streaming UI updates. Returns the final accumulated
+   * text and tool calls.
    *
    * ```ts
-   * const result = await agent.send("Hello", {
+   * const result = await agent.prompt("Hello", {
    *   onText: (delta, full) => updateUI(full),
    *   onToolCallEnd: (tc) => console.log("Tool done:", tc.name),
    * });
    * console.log(result.text, result.toolCalls);
    * ```
    */
-  async send(text: string, callbacks?: PromptCallbacks): Promise<PromptResult> {
+  async prompt(text: string, callbacks?: PromptCallbacks): Promise<PromptResult> {
     let fullText = "";
     const toolCalls: import("./types.js").ToolCall[] = [];
 
     try {
-      for await (const event of this.prompt(text)) {
+      for await (const event of this.advancedPrompt(text)) {
         switch (event.type) {
           case "text_delta":
             fullText += event.delta;

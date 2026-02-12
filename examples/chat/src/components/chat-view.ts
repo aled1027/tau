@@ -469,7 +469,7 @@ export class ChatView extends LitElement {
     this.streamToolCalls = [];
 
     const streamToolCalls: ToolCall[] = [];
-    const result = await this.agent.send(text, {
+    const result = await this.agent.prompt(text, {
       onText: (_delta, full) => { this.streamText = full; },
       onToolCallStart: (tc) => {
         streamToolCalls.push(tc);
