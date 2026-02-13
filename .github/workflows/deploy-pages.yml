@@ -33,16 +33,16 @@ jobs:
 
       - name: Build chat example
         working-directory: examples/chat
-        run: npx vite build --base /pi-browser/chat/
+        run: npx vite build --base /tau/chat/
 
       - name: Build tutor example
         working-directory: examples/tutor
-        run: npx vite build --base /pi-browser/tutor/
+        run: npx vite build --base /tau/tutor/
 
       - name: Build sveltekit-chat example
         working-directory: examples/sveltekit-chat
         env:
-          BASE_PATH: /pi-browser/sveltekit-chat
+          BASE_PATH: /tau/sveltekit-chat
         run: npx svelte-kit sync && npx vite build
 
       - name: Assemble site
