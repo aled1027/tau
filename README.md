@@ -8,6 +8,7 @@ WARNING: THIS TOOL COULD RESULT IN HARMFUL CODE RUNNING IN YOUR BROWSER TAB.
 
 ## TODO:
 
+- Nice Demo
 - Later: sync state or export. export would be download a zip and maybe could
 - Add CSP for security
 - Make sure the default extension are loaded by default instead of explicitly in the examples
