@@ -328,6 +328,21 @@ The running Agent instance is exposed at `window.__PI_AGENT__`. You can access i
 - **Access VFS**: `window.__PI_AGENT__.fs`
 - **Listen to events**: `window.__PI_AGENT__.on("agent_event", (e) => { ... })`
 
+### Persistence
+
+Not all changes via `window.__PI_AGENT__` survive a page reload:
+
+| Method | Persisted? | Notes |
+|--------|-----------|-------|
+| `addExtension()` / `removeExtension()` | ✅ Yes | Writes to VFS and flushes to IndexedDB automatically |
+| `addSkill()` / `removeSkill()` | ✅ Yes | Writes to VFS and flushes to IndexedDB automatically |
+| `registerTool()` | ❌ No | In-memory only; lost on reload. Use `addExtension()` to persist a tool. |
+| `on("agent_event", ...)` | ❌ No | Event listeners are in-memory only |
+| `fs.write(...)` / `fs.delete(...)` | ❌ No | VFS changes are in-memory until flushed. Call `await agent.persist()` to save to IndexedDB. |
+| `config.model = "..."` etc. | ❌ No | Config changes take effect immediately but are not persisted; lost on reload. |
+
+**Rule of thumb:** `addExtension()` and `addSkill()` persist automatically. Everything else is ephemeral unless you call `await window.__PI_AGENT__.persist()` (for VFS changes) or wrap the tool in an extension (for tools).
+
 ### Examples via `run_javascript`
 
 Register a tool on the fly:
