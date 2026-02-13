@@ -709,7 +709,7 @@ describe("Agent tools", () => {
   });
 
   it("should NOT include read_skill tool when no skills are registered", async () => {
-    const agent = await Agent.create({ apiKey: "test-key" });
+    const agent = await Agent.create({ apiKey: "test-key", noDefaults: true });
     const toolNames = agent.tools.map(t => t.name);
     expect(toolNames).not.toContain("read_skill");
   });
@@ -1000,6 +1000,7 @@ describe("Agent system prompt", () => {
   it("should include skill descriptions in system prompt", async () => {
     const agent = await Agent.create({
       apiKey: "test-key",
+      noDefaults: true,
       skills: [{
         name: "code-review",
         description: "Review code for quality",
@@ -1017,6 +1018,7 @@ describe("Agent system prompt", () => {
   it("should use custom system prompt when provided", async () => {
     const agent = await Agent.create({
       apiKey: "test-key",
+      noDefaults: true,
       systemPrompt: "You are a helpful bot.",
     });
 
@@ -1027,7 +1029,7 @@ describe("Agent system prompt", () => {
   it("should rebuild system prompt on each prompt to reflect new skills", async () => {
     mockRunAgent.mockReturnValue(eventsFrom([textDelta("ok"), turnEnd()]));
 
-    const agent = await Agent.create({ apiKey: "test-key" });
+    const agent = await Agent.create({ apiKey: "test-key", noDefaults: true });
 
     // Initially no skills in system prompt
     expect(agent.getMessages()[0].content).not.toContain("available_skills");
@@ -1192,7 +1194,7 @@ describe("Agent persistence and restoration", () => {
       "/.tau/skills/notes.txt": "not a skill",
     };
 
-    const agent = await Agent.create({ apiKey: "test-key" });
+    const agent = await Agent.create({ apiKey: "test-key", noDefaults: true });
     expect(agent.skills.getAll()).toHaveLength(0);
   });
 
@@ -1458,7 +1460,7 @@ describe("Agent → runAgent call verification", () => {
   it("should NOT include read_skill tool when no skills exist", async () => {
     mockRunAgent.mockReturnValue(eventsFrom([textDelta("ok"), turnEnd()]));
 
-    const agent = await Agent.create({ apiKey: "test-key" });
+    const agent = await Agent.create({ apiKey: "test-key", noDefaults: true });
     await agent.prompt("test");
 
     const [, toolsGetter] = mockRunAgent.mock.calls[0] as [any, () => any[], any, any];
@@ -1597,7 +1599,7 @@ describe("Agent → runAgent call verification", () => {
   it("should reflect dynamically added skills in system prompt on next prompt", async () => {
     mockRunAgent.mockReturnValue(eventsFrom([textDelta("ok"), turnEnd()]));
 
-    const agent = await Agent.create({ apiKey: "test-key" });
+    const agent = await Agent.create({ apiKey: "test-key", noDefaults: true });
     await agent.prompt("before skill");
 
     // System prompt should NOT mention any skills
