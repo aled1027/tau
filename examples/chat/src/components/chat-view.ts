@@ -284,6 +284,50 @@ export class ChatView extends LitElement {
       }
     }
 
+    /* Loading indicator */
+    .loading {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .loading-dots {
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .loading-dots span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: loading-bounce 1.4s ease-in-out infinite;
+    }
+
+    .loading-dots span:nth-child(2) {
+      animation-delay: 0.16s;
+    }
+
+    .loading-dots span:nth-child(3) {
+      animation-delay: 0.32s;
+    }
+
+    @keyframes loading-bounce {
+      0%, 80%, 100% {
+        opacity: 0.3;
+        transform: scale(0.8);
+      }
+      40% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
     /* Tool calls */
     .tool-calls {
       display: flex;
@@ -890,6 +934,14 @@ export class ChatView extends LitElement {
                 },
                 true
               )
+            : nothing}
+          ${this.streaming && !this.streamText && this.streamToolCalls.length === 0
+            ? html`<div class="loading">
+                <div class="loading-dots">
+                  <span></span><span></span><span></span>
+                </div>
+                Thinking…
+              </div>`
             : nothing}
         </div>
 
