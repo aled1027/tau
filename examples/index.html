@@ -4,32 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-src 'none'; object-src 'none'; base-uri 'self';" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='15' fill='%230f0f0f'/><text x='50' y='72' font-size='65' text-anchor='middle' fill='white' font-family='system-ui'>τ</text></svg>" />
-    <title>tau examples</title>
+    <title>tau — Examples</title>
     <style>
       :root {
         --bg: #0f0f0f;
         --bg-raised: #1a1a1a;
         --bg-hover: #222;
-        --border: #2a2a2a;
+        --border: #1a1a1a;
+        --border-subtle: #2a2a2a;
         --text: #e0e0e0;
         --text-heading: #fff;
         --text-muted: #888;
-        --text-faint: #666;
+        --text-faint: #555;
         --accent: #6ea8fe;
+        --tag-bg: #1a1a2a;
+        --tag-text: #6ea8fe;
       }
       @media (prefers-color-scheme: light) {
         :root {
           --bg: #ffffff;
           --bg-raised: #f6f8fa;
           --bg-hover: #eef1f5;
-          --border: #d0d7de;
+          --border: #e1e4e8;
+          --border-subtle: #d0d7de;
           --text: #24292f;
           --text-heading: #1b1f24;
           --text-muted: #656d76;
           --text-faint: #8b949e;
           --accent: #0969da;
+          --tag-bg: #ddf4ff;
+          --tag-text: #0969da;
         }
       }
 
@@ -38,84 +43,201 @@
         font-family: system-ui, -apple-system, sans-serif;
         background: var(--bg);
         color: var(--text);
-        display: flex;
-        justify-content: center;
-        align-items: center;
         min-height: 100vh;
       }
-      .container {
-        max-width: 480px;
-        width: 100%;
-        padding: 2rem;
+
+      /* Header */
+      header {
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
       }
-      h1 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
+      header .logo {
+        font-size: 1.4rem;
+        font-weight: 700;
         color: var(--text-heading);
-      }
-      .subtitle {
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        margin-bottom: 1.5rem;
-      }
-      ul { list-style: none; }
-      li + li { margin-top: 0.75rem; }
-      a {
-        display: block;
-        padding: 1rem 1.25rem;
-        background: var(--bg-raised);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        color: var(--accent);
         text-decoration: none;
-        font-size: 1.1rem;
-        transition: background 0.15s, border-color 0.15s;
       }
-      a:hover {
+      header nav {
+        display: flex;
+        gap: 1.5rem;
+        margin-left: auto;
+      }
+      header nav a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 0.15s;
+      }
+      header nav a:hover { color: var(--text-heading); }
+      header nav a.active { color: var(--accent); }
+
+      /* Page content */
+      .page {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 3rem 2rem 4rem;
+      }
+      .page h1 {
+        font-size: 2rem;
+        color: var(--text-heading);
+        margin-bottom: 0.5rem;
+      }
+      .page .subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+        line-height: 1.6;
+      }
+      .setup-hint {
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+        font-size: 0.82rem;
+        color: var(--text-faint);
+        background: var(--bg-raised);
+        border: 1px solid var(--border-subtle);
+        border-radius: 6px;
+        padding: 0.5rem 0.85rem;
+        display: inline-block;
+        margin-bottom: 2.5rem;
+      }
+
+      /* Cards */
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.25rem;
+      }
+      .card {
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem;
+        background: var(--bg-raised);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        color: var(--text);
+        text-decoration: none;
+        transition: background 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+      }
+      .card:hover {
         background: var(--bg-hover);
         border-color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       }
-      .tech {
+      .card h2 {
+        font-size: 1.2rem;
+        color: var(--text-heading);
+        margin-bottom: 0.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .card h2 .icon {
+        font-size: 1.1rem;
+      }
+      .card p {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        line-height: 1.55;
+        flex: 1;
+      }
+      .card .tags {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        margin-top: 0.85rem;
+      }
+      .card .tag {
+        font-size: 0.72rem;
+        font-weight: 500;
+        padding: 0.2rem 0.55rem;
+        border-radius: 99px;
+        background: var(--tag-bg);
+        color: var(--tag-text);
+      }
+      .card .cmd {
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
         font-size: 0.75rem;
         color: var(--text-faint);
-        margin-top: 4px;
+        margin-top: 0.65rem;
       }
-      code {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        display: block;
-        margin-top: 1.5rem;
+
+      /* Footer */
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 2rem;
         text-align: center;
+        color: var(--text-faint);
+        font-size: 0.85rem;
       }
-      .back-link {
-        background: none;
-        border: none;
-        padding: 0;
-        font-size: 0.9rem;
-      }
-      .back-link:hover {
-        background: none;
-        border: none;
-      }
+      footer a { color: var(--accent); text-decoration: none; }
+      footer a:hover { text-decoration: underline; }
     </style>
   </head>
   <body>
-    <div class="container">
-      <h1>τ tau — Examples</h1>
-      <p class="subtitle">Each example is a standalone app. Run them individually:</p>
-      <ul>
-        <li>
-          <a href="./chat/">Chat <div class="tech">Lit · <code>npm run dev:chat</code></div></a>
-        </li>
-        <li>
-          <a href="./tutor/">Tutor <div class="tech">Lit · <code>npm run dev:tutor</code></div></a>
-        </li>
-        <li>
-          <a href="./sveltekit-chat/">SvelteKit Chat <div class="tech">SvelteKit + Svelte 5 · <code>npm run dev:sveltekit</code></div></a>
-        </li>
-      </ul>
-      <code>cd examples/&lt;name&gt; && npm install && npm run dev</code>
-      <p style="margin-top: 1.5rem; text-align: center;"><a class="back-link" href="../">← Back to tau home</a></p>
+    <header>
+      <a class="logo" href="../">τ tau</a>
+      <nav>
+        <a href="../docs/">Docs</a>
+        <a class="active" href="./">Examples</a>
+        <a href="https://github.com/aled1027/pi-browser">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="page">
+      <h1>Examples</h1>
+      <p class="subtitle">Live demos and starter apps built with tau. Each example is a standalone project you can run locally or try in the browser.</p>
+      <div class="setup-hint">cd examples/&lt;name&gt; &amp;&amp; npm install &amp;&amp; npm run dev</div>
+
+      <div class="cards">
+        <a class="card" href="./chat/">
+          <h2><span class="icon">💬</span> Chat</h2>
+          <p>Minimal chat interface with a file browser, tool use, and thread management. A good starting point for understanding the core API.</p>
+          <div class="tags">
+            <span class="tag">Lit</span>
+            <span class="tag">Vite</span>
+          </div>
+          <div class="cmd">npm run dev:chat</div>
+        </a>
+
+        <a class="card" href="./tutor/">
+          <h2><span class="icon">🎓</span> Tutor</h2>
+          <p>AI tutor with structured lessons, an integrated code editor, and prompt templates. Demonstrates skills and extensions in action.</p>
+          <div class="tags">
+            <span class="tag">Lit</span>
+            <span class="tag">Vite</span>
+            <span class="tag">Skills</span>
+            <span class="tag">Templates</span>
+          </div>
+          <div class="cmd">npm run dev:tutor</div>
+        </a>
+
+        <a class="card" href="./sveltekit-chat/">
+          <h2><span class="icon">🔶</span> SvelteKit Chat</h2>
+          <p>Chat app built with SvelteKit and Svelte 5. Shows how to integrate tau into a full-stack framework with server-side rendering.</p>
+          <div class="tags">
+            <span class="tag">SvelteKit</span>
+            <span class="tag">Svelte 5</span>
+          </div>
+          <div class="cmd">npm run dev:sveltekit</div>
+        </a>
+
+        <a class="card" href="./do-i-suck-at-math/">
+          <h2><span class="icon">🧮</span> Do I Suck at Math?</h2>
+          <p>A minimal SvelteKit example — the simplest possible tau integration. Great for understanding the basics.</p>
+          <div class="tags">
+            <span class="tag">SvelteKit</span>
+            <span class="tag">Minimal</span>
+          </div>
+          <div class="cmd">cd examples/do-i-suck-at-math &amp;&amp; npm run dev</div>
+        </a>
+      </div>
     </div>
+
+    <footer>
+      <p>tau — <a href="../docs/">Docs</a> · <a href="https://github.com/aled1027/pi-browser">GitHub</a></p>
+    </footer>
   </body>
 </html>

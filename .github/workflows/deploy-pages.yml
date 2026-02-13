@@ -45,9 +45,15 @@ jobs:
           BASE_PATH: /tau/examples/sveltekit-chat
         run: npx svelte-kit sync && npx vite build
 
+      - name: Build do-i-suck-at-math example
+        working-directory: examples/do-i-suck-at-math
+        env:
+          BASE_PATH: /tau/examples/do-i-suck-at-math
+        run: npx svelte-kit sync && npx vite build
+
       - name: Assemble site
         run: |
-          mkdir -p _site/docs _site/examples/chat _site/examples/tutor _site/examples/sveltekit-chat
+          mkdir -p _site/docs _site/examples/chat _site/examples/tutor _site/examples/sveltekit-chat _site/examples/do-i-suck-at-math
 
           # Landing page
           cp site/index.html _site/
@@ -63,6 +69,7 @@ jobs:
           cp -r examples/chat/dist/* _site/examples/chat/
           cp -r examples/tutor/dist/* _site/examples/tutor/
           cp -r examples/sveltekit-chat/build/* _site/examples/sveltekit-chat/
+          cp -r examples/do-i-suck-at-math/build/* _site/examples/do-i-suck-at-math/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
