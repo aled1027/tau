@@ -17,22 +17,17 @@ WARNING: THIS TOOL COULD RESULT IN HARMFUL CODE RUNNING IN YOUR BROWSER TAB.
 ```typescript
 import { Agent } from "tau";
 
-const agent = await Agent.create({ apiKey: "sk-or-..." });
+const openrouterApiKey = "sk-or-...."
+const agent = await Agent.create({ apiKey: openrouterApiKey });
 
-// Simple — just await it
-const result = await agent.prompt("Write hello world in Python");
-console.log(result.text);
+const res1 = await agent.prompt("Write hello world in Python");
+console.log(res1.text);
 
-// Streaming — iterate for events, then read the result
-const stream = agent.prompt("Build a React component");
-for await (const event of stream) {
-  if (event.type === "text_delta") updateUI(event.delta);
-}
-console.log(stream.result.text);
+const res2 = await agent.prompt("What time is it?");
+console.log(res2.text);
 ```
 
 See [docs/tau-core.md](docs/tau-core.md) for the full API reference.
-
 
 
 ## Setup
