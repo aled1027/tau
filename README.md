@@ -6,11 +6,11 @@ A browser-based AI coding agent powered by [OpenRouter](https://openrouter.ai/).
 - Docs:https://aled1027.github.com/tau/docs
 - Demos: https://aled1027.github.com/tau/examples
 
-<div style="background: #ffcccc; color: #b20000; font-weight: bold; padding: 16px; border-radius: 8px; border: 2px solid #b20000; font-size: 1.2em; margin: 16px 0;">
-  ⚠️ WARNING: This tool allows execution of <u>arbitrary code</u> in your browser tab.<br>
-  Running untrusted code may be dangerous and could harm your system.<br>
-  <strong>Use with caution!</strong>
-</div>
+> **:warning: WARNING**  
+>
+> This tool allows execution of **arbitrary code** in your browser tab.  
+> Running untrusted code may be dangerous and could harm your system.  
+> **Use with caution!**
 
 ## TODO:
 
