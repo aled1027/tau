@@ -12,10 +12,10 @@
 
 import { describe, it, expect } from "vitest";
 
-// Skip the entire suite if no API key is provided
-// TODO: figure this out
-// const apiKey = process.env.OPENROUTER_API_KEY;
-const apiKey = "foo"
+declare const process: { env: Record<string, string | undefined> } | undefined;
+
+// Skip the entire suite if no API key is provided (Vitest runs in Node where process exists)
+const apiKey = process?.env?.OPENROUTER_API_KEY;
 const describeIntegration = apiKey ? describe : describe.skip;
 
 // We need to mock storage (no IndexedDB/localStorage in Node)
