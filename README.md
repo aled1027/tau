@@ -4,7 +4,11 @@ A browser-based AI coding agent powered by [OpenRouter](https://openrouter.ai/).
 
 Inspired by the real [pi coding agent](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent).
 
-WARNING: THIS TOOL COULD RESULT IN HARMFUL CODE RUNNING IN YOUR BROWSER TAB.
+<div style="background: #ffcccc; color: #b20000; font-weight: bold; padding: 16px; border-radius: 8px; border: 2px solid #b20000; font-size: 1.2em; margin: 16px 0;">
+  ⚠️ WARNING: This tool allows execution of <u>arbitrary code</u> in your browser tab.<br>
+  Running untrusted code may be dangerous and could harm your system.<br>
+  <strong>Use with caution!</strong>
+</div>
 
 ## TODO:
 
