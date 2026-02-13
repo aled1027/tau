@@ -3,6 +3,7 @@ import { customElement, property, state, query } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
 import type { Agent, PromptTemplate, UserInputRequest, UserInputResponse, ToolCall, ThreadMeta } from "pi-browser";
 import "./user-input-form.js";
+import "./file-browser.js";
 
 interface ChatMessage {
   id: number;
@@ -291,6 +292,57 @@ export class ChatView extends LitElement {
       cursor: not-allowed;
     }
 
+    /* File browser sidebar */
+    .file-sidebar-wrapper {
+      display: flex;
+      flex-direction: row;
+      overflow: hidden;
+    }
+
+    .resize-handle {
+      width: 4px;
+      cursor: col-resize;
+      background: var(--border);
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+
+    .resize-handle:hover,
+    .resize-handle.dragging {
+      background: var(--accent);
+    }
+
+    .file-sidebar {
+      flex: 1;
+      min-width: 0;
+      background: var(--bg-secondary);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .file-sidebar-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 4px 10px;
+      white-space: nowrap;
+    }
+
+    .file-sidebar-toggle:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .file-sidebar-toggle.active {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
     /* Autocomplete */
     .autocomplete {
       position: absolute;
@@ -348,6 +400,42 @@ export class ChatView extends LitElement {
   @state() private streamToolCalls: ToolCall[] = [];
   @state() private suggestions: PromptTemplate[] = [];
   @state() private selectedSuggestion = 0;
+  @state() private showFiles = false;
+  @state() private filesVersion = 0;
+  @state() private fileSidebarWidth = 280;
+  @state() private isResizing = false;
+
+  private resizeStartX = 0;
+  private resizeStartWidth = 0;
+  private boundResizeMove = this.handleResizeMove.bind(this);
+  private boundResizeEnd = this.handleResizeEnd.bind(this);
+
+  private handleResizeStart(e: MouseEvent) {
+    e.preventDefault();
+    this.isResizing = true;
+    this.resizeStartX = e.clientX;
+    this.resizeStartWidth = this.fileSidebarWidth;
+    document.addEventListener("mousemove", this.boundResizeMove);
+    document.addEventListener("mouseup", this.boundResizeEnd);
+  }
+
+  private handleResizeMove(e: MouseEvent) {
+    const delta = this.resizeStartX - e.clientX; // dragging left = wider
+    const newWidth = Math.max(150, Math.min(600, this.resizeStartWidth + delta));
+    this.fileSidebarWidth = newWidth;
+  }
+
+  private handleResizeEnd() {
+    this.isResizing = false;
+    document.removeEventListener("mousemove", this.boundResizeMove);
+    document.removeEventListener("mouseup", this.boundResizeEnd);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    document.removeEventListener("mousemove", this.boundResizeMove);
+    document.removeEventListener("mouseup", this.boundResizeEnd);
+  }
   @state() private pendingInput: {
     request: UserInputRequest;
     resolve: (response: UserInputResponse) => void;
@@ -526,6 +614,7 @@ export class ChatView extends LitElement {
     this.streamText = "";
     this.streamToolCalls = [];
     this.streaming = false;
+    this.filesVersion++;
 
     // Refresh thread list (name may have changed)
     this.refreshThreadList();
@@ -651,10 +740,16 @@ export class ChatView extends LitElement {
           <span class="title">π browser</span>
           <span>
             <button
+              class="file-sidebar-toggle ${this.showFiles ? "active" : ""}"
+              @click=${() => { this.showFiles = !this.showFiles; }}
+              title="Toggle file browser"
+            >📁 Files</button>
+            <button
               class="clear-btn"
               @click=${this.handleClear}
               ?disabled=${this.streaming}
               title="Clear all threads and reset agent"
+              style="margin-left: 8px;"
             >Clear</button>
             <span class="model" style="margin-left: 12px;">hardcoded model goes here</span>
             <span style="font-size: 12px; margin-left: 12px; color: var(--text-muted); opacity: 0.7;">chat</span>
@@ -735,6 +830,20 @@ export class ChatView extends LitElement {
             ></user-input-form>`
           : nothing}
       </div>
+      ${this.showFiles
+        ? html`<div class="file-sidebar-wrapper" style="width: ${this.fileSidebarWidth}px;">
+            <div
+              class="resize-handle ${this.isResizing ? "dragging" : ""}"
+              @mousedown=${this.handleResizeStart}
+            ></div>
+            <div class="file-sidebar">
+              <file-browser
+                .agent=${this.agent}
+                .agentVersion=${this.agentVersion + this.filesVersion}
+              ></file-browser>
+            </div>
+          </div>`
+        : nothing}
     `;
   }
 }
