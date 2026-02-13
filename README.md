@@ -12,11 +12,9 @@ Inspired by the real [pi coding agent](https://github.com/badlogic/pi-mono/tree/
 
 ## TODO:
 
-- Get demos working on github pages
-- Nice Demo
 - Later: sync state or export. export would be download a zip and maybe could
-- ~~Add CSP for security~~ (basic CSP added)
 - Make sure the default extension are loaded by default instead of explicitly in the examples
+- CSP broke svelte-kit demo
 
 ## Quick start
 

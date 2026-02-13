@@ -22,6 +22,15 @@ import { PromptTemplateRegistry } from "./prompt-templates.js";
 import { runAgent } from "./openrouter.js";
 import { VirtualFS, createTools } from "./tools.js";
 import { ThreadStorage, type ThreadMeta } from "./storage.js";
+import {
+  addExtensionExtension,
+  askUserExtension,
+  runJavascriptExtension,
+  codeReviewSkill,
+  litComponentSkill,
+  tauSkill,
+  builtinTemplates,
+} from "./plugins/index.js";
 
 export type { ThreadMeta };
 
@@ -36,6 +45,8 @@ export interface AgentConfig {
   promptTemplates?: PromptTemplate[];
   /** Per-request timeout in milliseconds for OpenRouter API calls. Default: 120000 (2 minutes). */
   timeout?: number;
+  /** When true, skip loading the default built-in extensions, skills, and prompt templates. Default: false. */
+  noDefaults?: boolean;
 }
 
 const TAU_DIR = "/.tau";
@@ -205,6 +216,17 @@ export class Agent implements ExtensionHost {
     this._fs = new VirtualFS();
     this.builtinTools = createTools(this._fs);
     this.extensions = new ExtensionRegistry();
+
+    // Merge defaults unless opted out
+    if (!config.noDefaults) {
+      const defaultExtensions: Extension[] = [addExtensionExtension, askUserExtension, runJavascriptExtension];
+      const defaultSkills: Skill[] = [codeReviewSkill, litComponentSkill, tauSkill];
+      const defaultTemplates: PromptTemplate[] = builtinTemplates;
+
+      config.extensions = [...defaultExtensions, ...(config.extensions ?? [])];
+      config.skills = [...defaultSkills, ...(config.skills ?? [])];
+      config.promptTemplates = [...defaultTemplates, ...(config.promptTemplates ?? [])];
+    }
 
     // Skills
     this.skills = new SkillRegistry();

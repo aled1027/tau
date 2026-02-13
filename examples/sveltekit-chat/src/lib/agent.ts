@@ -1,21 +1,9 @@
 /**
  * Shared agent creation helper.
- * Creates an Agent configured with the standard plugins.
+ * Creates an Agent configured with the standard plugins (loaded by default).
  */
-import {
-  Agent,
-  askUserExtension,
-  runJavascriptExtension,
-  codeReviewSkill,
-  litComponentSkill,
-  builtinTemplates,
-} from "tau";
+import { Agent } from "tau";
 
 export async function createAgent(apiKey: string): Promise<Agent> {
-  return Agent.create({
-    apiKey,
-    extensions: [askUserExtension, runJavascriptExtension],
-    skills: [codeReviewSkill, litComponentSkill],
-    promptTemplates: builtinTemplates,
-  });
+  return Agent.create({ apiKey });
 }
