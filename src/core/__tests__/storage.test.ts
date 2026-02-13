@@ -25,7 +25,6 @@ function createLocalStorage() {
 }
 
 // --- IndexedDB polyfill (minimal, using fake-indexeddb if available) ---
-let hasIndexedDB = false;
 try {
   const fakeIdb = await import("fake-indexeddb").catch(() => null);
   if (fakeIdb) {
@@ -33,7 +32,6 @@ try {
     if (fakeIdb.IDBKeyRange) {
       globalThis.IDBKeyRange = fakeIdb.IDBKeyRange;
     }
-    hasIndexedDB = true;
   }
 } catch {
   // No fake-indexeddb available, tests will verify graceful fallback

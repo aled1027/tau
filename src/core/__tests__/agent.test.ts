@@ -4,10 +4,10 @@ import { PromptStream } from "../agent.js";
 
 // ─── Mock openrouter ────────────────────────────────────────────────
 
-const mockRunAgent = vi.fn<() => AsyncGenerator<AgentEvent>>();
+const mockRunAgent = vi.fn<(messages: Message[], tools: any, options: any, signal?: AbortSignal) => AsyncGenerator<AgentEvent>>();
 
 vi.mock("../openrouter.js", () => ({
-  runAgent: (...args: unknown[]) => mockRunAgent(...(args as [])),
+  runAgent: (...args: any[]) => mockRunAgent(...(args as [Message[], any, any, AbortSignal?])),
 }));
 
 // ─── Mock storage (avoid IndexedDB / localStorage in tests) ────────
@@ -425,7 +425,7 @@ describe("Agent.prompt()", () => {
 
     expect(mockRunAgent).toHaveBeenCalledWith(
       expect.any(Array),
-      expect.any(Array),
+      expect.any(Function),
       { apiKey: "key", model: "m", timeout: 5000 },
       expect.any(AbortSignal),
     );
@@ -439,7 +439,7 @@ describe("Agent.prompt()", () => {
 
     expect(mockRunAgent).toHaveBeenCalledWith(
       expect.any(Array),
-      expect.any(Array),
+      expect.any(Function),
       expect.objectContaining({ model: "minimax/minimax-m2.5" }),
       expect.any(AbortSignal),
     );
@@ -597,7 +597,7 @@ describe("Agent thread management", () => {
     await agent.prompt("Hello thread 1");
 
     // Create thread 2
-    const thread2Id = await agent.newThread("Thread 2");
+    await agent.newThread("Thread 2");
     expect(agent.getMessages().length).toBe(1); // only system
 
     // Switch back to thread 1
@@ -625,7 +625,7 @@ describe("Agent thread management", () => {
 
   it("should delete a thread", async () => {
     const agent = await Agent.create({ apiKey: "test-key" });
-    const thread1 = agent.activeThreadId!;
+    void agent.activeThreadId!;
     const thread2 = await agent.newThread("Thread 2");
 
     // Delete thread 2 (non-active)
@@ -969,7 +969,7 @@ describe("Agent user input", () => {
   it("should delegate requestUserInput to the handler", async () => {
     const agent = await Agent.create({ apiKey: "test-key" });
 
-    agent.setUserInputHandler(async (req) => {
+    agent.setUserInputHandler(async (_req) => {
       return { answer: "42" };
     });
 
@@ -1074,10 +1074,10 @@ describe("Agent config extensions", () => {
   it("should load config extensions on create", async () => {
     let extensionLoaded = false;
 
-    const agent = await Agent.create({
+    await Agent.create({
       apiKey: "test-key",
       extensions: [
-        (host) => {
+        (_host) => {
           extensionLoaded = true;
         },
       ],
@@ -1092,7 +1092,7 @@ describe("Agent config extensions", () => {
     const agent = await Agent.create({
       apiKey: "test-key",
       extensions: [
-        (host) => {
+        (_host) => {
           loadCount++;
         },
       ],
@@ -1107,10 +1107,10 @@ describe("Agent config extensions", () => {
   it("should support async extensions", async () => {
     let extensionLoaded = false;
 
-    const agent = await Agent.create({
+    await Agent.create({
       apiKey: "test-key",
       extensions: [
-        async (host) => {
+        async (_host) => {
           await new Promise(resolve => setTimeout(resolve, 10));
           extensionLoaded = true;
         },
@@ -1294,7 +1294,7 @@ describe("Agent persistence and restoration", () => {
 
   it("should switch thread and restore messages from storage (empty thread)", async () => {
     const agent = await Agent.create({ apiKey: "test-key" });
-    const thread1 = agent.activeThreadId!;
+    void agent.activeThreadId!;
 
     // Create a second thread with no messages in storage
     const thread2Id = "empty-thread";
@@ -1428,8 +1428,8 @@ describe("Agent → runAgent call verification", () => {
     });
     await agent.prompt("test");
 
-    const [, tools] = mockRunAgent.mock.calls[0] as [any, any[], any, any];
-    const toolNames = tools.map((t: any) => t.name);
+    const [, toolsGetter] = mockRunAgent.mock.calls[0] as [any, () => any[], any, any];
+    const toolNames = toolsGetter().map((t: any) => t.name);
     expect(toolNames).toContain("read");
     expect(toolNames).toContain("write");
     expect(toolNames).toContain("edit");
@@ -1450,8 +1450,8 @@ describe("Agent → runAgent call verification", () => {
     });
     await agent.prompt("test");
 
-    const [, tools] = mockRunAgent.mock.calls[0] as [any, any[], any, any];
-    const toolNames = tools.map((t: any) => t.name);
+    const [, toolsGetter] = mockRunAgent.mock.calls[0] as [any, () => any[], any, any];
+    const toolNames = toolsGetter().map((t: any) => t.name);
     expect(toolNames).toContain("read_skill");
   });
 
@@ -1461,8 +1461,8 @@ describe("Agent → runAgent call verification", () => {
     const agent = await Agent.create({ apiKey: "test-key" });
     await agent.prompt("test");
 
-    const [, tools] = mockRunAgent.mock.calls[0] as [any, any[], any, any];
-    const toolNames = tools.map((t: any) => t.name);
+    const [, toolsGetter] = mockRunAgent.mock.calls[0] as [any, () => any[], any, any];
+    const toolNames = toolsGetter().map((t: any) => t.name);
     expect(toolNames).not.toContain("read_skill");
   });
 

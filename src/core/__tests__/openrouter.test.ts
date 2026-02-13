@@ -102,7 +102,7 @@ describe("runAgent", () => {
 
   beforeEach(() => {
     mockFetch = vi.fn();
-    globalThis.fetch = mockFetch;
+    globalThis.fetch = mockFetch as any;
   });
 
   afterEach(() => {
@@ -391,7 +391,7 @@ describe("runAgent", () => {
         body: sseStream([textChunk("Done")]),
       });
 
-      const events = await collectEvents(makeMessages(), [tool], { apiKey: "k", model: "m" });
+      await collectEvents(makeMessages(), [tool], { apiKey: "k", model: "m" });
 
       expect(tool.execute).toHaveBeenCalledWith({ query: "hello" });
     });
@@ -482,7 +482,7 @@ describe("runAgent", () => {
         body: sseStream([textChunk("done")]),
       });
 
-      const events = await collectEvents(makeMessages(), [tool], { apiKey: "k", model: "m" });
+      await collectEvents(makeMessages(), [tool], { apiKey: "k", model: "m" });
 
       // Should still call the tool with empty args
       expect(tool.execute).toHaveBeenCalledWith({});
