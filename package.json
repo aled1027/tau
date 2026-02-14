@@ -1,8 +1,14 @@
 {
-  "name": "tau",
+  "name": "@alexledger/tau",
   "version": "0.0.1",
-  "private": true,
   "type": "module",
+  "description": "A browser automation library",
+  "license": "MIT",
+  "author": "Alex Ledger",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aled1027/pi-browser"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
