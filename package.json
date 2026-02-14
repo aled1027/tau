@@ -7,7 +7,7 @@
   "author": "Alex Ledger",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aled1027/pi-browser"
+    "url": "https://github.com/aled1027/tau"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
