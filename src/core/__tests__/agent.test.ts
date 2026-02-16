@@ -694,6 +694,23 @@ describe("Agent tools", () => {
     expect(toolNames).toContain("list");
   });
 
+  it("should include local directory tools by default", async () => {
+    const agent = await Agent.create({ apiKey: "test-key" });
+    const toolNames = agent.tools.map(t => t.name);
+    expect(toolNames).toContain("local_pick_directory");
+    expect(toolNames).toContain("local_list_files");
+    expect(toolNames).toContain("local_read_file");
+    expect(toolNames).toContain("local_write_file");
+    expect(toolNames).toContain("local_delete_file");
+  });
+
+  it("should NOT include local directory tools when noDefaults is true", async () => {
+    const agent = await Agent.create({ apiKey: "test-key", noDefaults: true });
+    const toolNames = agent.tools.map(t => t.name);
+    expect(toolNames).not.toContain("local_pick_directory");
+    expect(toolNames).not.toContain("local_read_file");
+  });
+
   it("should include read_skill tool when skills are registered", async () => {
     const agent = await Agent.create({
       apiKey: "test-key",

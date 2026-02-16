@@ -25,6 +25,7 @@ import { ThreadStorage, type ThreadMeta } from "./storage.js";
 import {
   addExtensionExtension,
   askUserExtension,
+  localDirectoryExtension,
   runJavascriptExtension,
   codeReviewSkill,
   litComponentSkill,
@@ -69,6 +70,15 @@ You have a virtual in-memory filesystem. Use the built-in tools to work with it:
 - **list** — list files under a path prefix
 
 All file paths live in this virtual filesystem. Files persist only for the duration of the session (they are lost on page reload).
+
+### Local directory access
+You can access a real directory on the user's machine via the File System Access API.
+Use the \`local_pick_directory\` tool to let the user select a folder, then use
+\`local_list_files\`, \`local_read_file\`, \`local_write_file\`, and \`local_delete_file\`
+to work with files in that folder. The browser sandboxes access so you can only
+reach files within the selected directory — never parent or sibling directories.
+The user is prompted for permission before each read, write, or delete operation.
+This only works in Chromium-based browsers (Chrome, Edge, Arc, etc.).
 
 ### Extensions
 Your capabilities can be extended at runtime through extensions. Extensions register new tools that you can then call. If you have the \`add_extension\` tool available, you can create extensions yourself.
@@ -219,7 +229,7 @@ export class Agent implements ExtensionHost {
 
     // Merge defaults unless opted out
     if (!config.noDefaults) {
-      const defaultExtensions: Extension[] = [addExtensionExtension, askUserExtension, runJavascriptExtension];
+      const defaultExtensions: Extension[] = [addExtensionExtension, askUserExtension, localDirectoryExtension, runJavascriptExtension];
       const defaultSkills: Skill[] = [codeReviewSkill, litComponentSkill, tauSkill];
       const defaultTemplates: PromptTemplate[] = builtinTemplates;
 

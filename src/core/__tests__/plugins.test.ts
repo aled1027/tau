@@ -11,6 +11,7 @@ import type { ToolDefinition, AgentEvent } from "../types.js";
 import type { ExtensionHost, UserInputRequest, UserInputResponse } from "../extensions.js";
 import { addExtensionExtension } from "../plugins/extensions/add-extension.js";
 import { askUserExtension } from "../plugins/extensions/ask-user.js";
+import { localDirectoryExtension } from "../plugins/extensions/local-directory.js";
 import { runJavascriptExtension } from "../plugins/extensions/run-javascript.js";
 import { builtinTemplates } from "../plugins/prompt-templates/builtins.js";
 
@@ -180,6 +181,23 @@ describe("askUserExtension", () => {
 
     expect(result.isError).toBe(true);
     expect(result.content).toContain("cancelled or failed");
+  });
+});
+
+// ─── local-directory plugin ─────────────────────────────────────────
+
+describe("localDirectoryExtension", () => {
+  it("should register the five local_* tools", () => {
+    const { host, tools } = createFakeHost();
+    localDirectoryExtension(host);
+
+    const names = tools.map((t) => t.name);
+    expect(names).toContain("local_pick_directory");
+    expect(names).toContain("local_list_files");
+    expect(names).toContain("local_read_file");
+    expect(names).toContain("local_write_file");
+    expect(names).toContain("local_delete_file");
+    expect(names).toHaveLength(5);
   });
 });
 

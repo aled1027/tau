@@ -1,6 +1,6 @@
 # Tau: The Self-Modifying, Browser-Based Agent
 
-The power of Claudecode, the ability to self-modify, all running in the browser? That's Tau.
+The power of Claude Code, the ability to self-modify, all running in the browser? That's Tau.
 
 Tau is a browser-based AI agent powered by [OpenRouter](https://openrouter.ai/). Tau is inpired by the [pi coding agent](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) and [co-do](https://co-do.xyz/).
 

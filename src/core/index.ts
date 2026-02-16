@@ -30,6 +30,7 @@ export { VirtualFS } from "./tools.js";
 export {
   addExtensionExtension,
   askUserExtension,
+  localDirectoryExtension,
   runJavascriptExtension,
   codeReviewSkill,
   litComponentSkill,

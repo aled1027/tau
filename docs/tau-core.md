@@ -78,7 +78,8 @@ Skill, PromptTemplate
 parseSkillMarkdown, serializeSkillMarkdown
 
 // Built-in plugins
-askUserExtension, codeReviewSkill, litComponentSkill, tauSkill, builtinTemplates
+askUserExtension, localDirectoryExtension, runJavascriptExtension,
+codeReviewSkill, litComponentSkill, tauSkill, builtinTemplates
 ```
 
 ---
@@ -316,6 +317,31 @@ type AgentEvent =
 
 All built-in tool schemas include `additionalProperties: false` to prevent models from hallucinating extra parameters.
 
+### Local directory tools
+
+The `localDirectoryExtension` (loaded by default) provides sandboxed read/write access to a real directory on the user's machine via the [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API). Inspired by Paul Kinlan's ["the browser is the sandbox"](https://paul.kinlan.me/the-browser-is-the-sandbox/) — the browser's 30-year-old security model already provides chroot-like filesystem isolation.
+
+| Tool | Params | Description |
+|------|--------|-------------|
+| `local_pick_directory` | _(none)_ | Opens the browser's directory picker. The selected folder becomes the sandbox root. |
+| `local_list_files` | `prefix?` | List all files recursively in the selected directory (or a subdirectory). |
+| `local_read_file` | `path` | Read a file (asks user permission). |
+| `local_write_file` | `path`, `content` | Write/create a file with intermediate dirs (asks user permission). |
+| `local_delete_file` | `path` | Delete a file (asks user permission). |
+
+**How it works:**
+1. The model calls `local_pick_directory` which triggers `showDirectoryPicker()`.
+2. The user selects a folder. The browser enforces that only files within that folder are accessible — no parent or sibling directory access.
+3. Before each read, write, or delete, the user is prompted for permission via `requestUserInput()`. The user can choose:
+   - **Yes, this time** — one-off approval
+   - **Yes, always for this operation** — blanket allow for all future reads/writes/deletes
+   - **No** — one-off denial
+   - **No, never for this operation** — blanket deny
+
+**Browser support:** Requires a Chromium-based browser (Chrome, Edge, Arc). Safari and Firefox do not support `showDirectoryPicker()`. The tool returns a clear error message in unsupported environments.
+
+**Security model:** The browser provides the sandbox — the agent can only access files within the user-selected directory. Combined with the permission prompts, this gives users granular control over what the agent can do with their local files.
+
 ### ToolDefinition
 
 ```typescript
@@ -488,9 +514,11 @@ interface UserInputField {
 type UserInputResponse = Record<string, string>;
 ```
 
-### Built-in extension
+### Built-in extensions
 
 - **`askUserExtension`** — Registers an `ask_user` tool that prompts the user for input.
+- **`localDirectoryExtension`** — Registers `local_pick_directory`, `local_list_files`, `local_read_file`, `local_write_file`, and `local_delete_file` tools for sandboxed access to a local directory via the File System Access API. The user is prompted for permission before each read, write, or delete.
+- **`runJavascriptExtension`** — Registers a `run_javascript` tool that executes arbitrary JavaScript in the browser.
 
 ---
 
@@ -690,7 +718,7 @@ The timeout applies per HTTP request, not per `prompt()` call. A prompt that tri
 ## Full example
 
 ```typescript
-import { Agent, askUserExtension, codeReviewSkill, builtinTemplates } from "tau";
+import { Agent, askUserExtension, localDirectoryExtension, codeReviewSkill, builtinTemplates } from "tau";
 import type { Extension, Skill, PromptTemplate } from "tau";
 
 // Custom extension (config-time)
