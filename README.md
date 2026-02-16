@@ -1,4 +1,4 @@
-# tau
+# Tau: The Self-Modifying, Browser-Based Agent
 
 The power of Claudecode, the ability to self-modify, all running in the browser? That's Tau.
 
@@ -40,28 +40,9 @@ console.log(res2.text);
 
 See [docs/tau-core.md](docs/tau-core.md) for the full API reference.
 
-## Setup
-
-```bash
-npm install    # installs root + all examples via workspaces
-npm run build  # builds the core library to dist/
-```
-
-## Development
-
-Run the library build in watch mode alongside an example:
-
-```bash
-npm run build:watch          # rebuild library on changes
-
-# If you want to test with an app, then do:
-cd your/app/path/
-npm run dev
-```
-
 ## Examples
 
-Browse all examples at: [https://aled1027.github.io/tau/examples/](https://aled1027.github.io/tau/examples/)
+Browse all examples at [https://aled1027.github.io/tau/examples/](https://aled1027.github.io/tau/examples/)
 
 | Example Name                                                                        | Path                       | Description                                                |
 | ----------------------------------------------------------------------------------- | -------------------------- | ---------------------------------------------------------- |
@@ -83,3 +64,15 @@ npm run dev
 ```
 
 Note that the examples import the `tau` library via `file:`.
+
+## Contributing
+
+```bash
+npm install
+
+npm run build:watch          # rebuild library on changes
+
+# If you want to test with an app, then do:
+cd your/app/path/
+npm run dev
+```
