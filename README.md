@@ -4,9 +4,9 @@ The power of Claude Code, the ability to self-modify, all running in the browser
 
 Tau is a browser-based AI agent powered by [OpenRouter](https://openrouter.ai/). Tau is inpired by the [pi coding agent](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) and [co-do](https://co-do.xyz/).
 
-- Website:https://aled1027.github.com/tau
-- Docs:https://aled1027.github.com/tau/docs
-- Demos: https://aled1027.github.com/tau/examples
+- Website:https://aled1027.github.io/tau
+- Docs:https://aled1027.github.io/tau/docs
+- Demos: https://aled1027.github.io/tau/examples
 
 > **:warning: WARNING**
 >
